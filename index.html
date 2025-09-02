@@ -1,1498 +1,584 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Открой Россию - Все достопримечательности и приключения</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --secondary: #10b981;
-            --accent: #f59e0b;
-            --danger: #ef4444;
-            --dark: #1f2937;
-            --light: #f3f4f6;
-            --white: #ffffff;
-            --shadow: 0 10px 30px rgba(0,0,0,0.1);
-            --shadow-lg: 0 20px 60px rgba(0,0,0,0.15);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--dark);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-
-        /* Навигация */
-        .navbar {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(20px);
-            box-shadow: var(--shadow);
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .nav-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .nav-menu {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-link {
-            color: var(--dark);
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-        }
-
-        .nav-link:hover {
-            color: var(--primary);
-            background: rgba(37, 99, 235, 0.1);
-        }
-
-        .nav-link.active {
-            color: var(--primary);
-            background: rgba(37, 99, 235, 0.1);
-        }
-
-        /* Главный экран */
-        .hero {
-            margin-top: 80px;
-            padding: 4rem 2rem;
-            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(243,244,246,0.95) 100%);
-            backdrop-filter: blur(10px);
-            border-radius: 0 0 50px 50px;
-        }
-
-        .hero-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            align-items: center;
-        }
-
-        .hero-content h1 {
-            font-size: 3.5rem;
-            font-weight: 900;
-            line-height: 1.2;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradient 3s ease infinite;
-        }
-
-        @keyframes gradient {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        .hero-content p {
-            font-size: 1.3rem;
-            color: #6b7280;
-            margin-bottom: 2rem;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
-        }
-
-        .btn-secondary {
-            background: white;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-
-        .btn-secondary:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .btn-location {
-            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
-            color: white;
-            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-location:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
-        }
-
-        /* Поиск */
-        .search-section {
-            padding: 3rem 2rem;
-            background: white;
-            margin: 2rem auto;
-            max-width: 1400px;
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .search-container {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 1rem 1.5rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        /* Фильтры */
-        .filters {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-        }
-
-        .filter-chip {
-            padding: 0.5rem 1.5rem;
-            border-radius: 25px;
-            background: var(--light);
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .filter-chip:hover {
-            background: white;
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .filter-chip.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        /* Карта */
-        #map {
-            height: 600px;
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-            margin: 2rem 0;
-        }
-
-        /* Карточки мест */
-        .places-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-            padding: 2rem 0;
-        }
-
-        .place-card {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .place-card:hover {
-            transform: translateY(-10px);
-            box-shadow: var(--shadow-lg);
-        }
-
-        .place-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 3rem;
-        }
-
-        .place-content {
-            padding: 1.5rem;
-        }
-
-        .place-category {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: rgba(37, 99, 235, 0.1);
-            color: var(--primary);
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-
-        .place-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: var(--dark);
-        }
-
-        .place-location {
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .place-description {
-            color: #4b5563;
-            line-height: 1.5;
-            margin-bottom: 1rem;
-        }
-
-        .place-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-top: 1rem;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .place-rating {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .star {
-            color: var(--accent);
-        }
-
-        .place-distance {
-            color: var(--secondary);
-            font-weight: 600;
-        }
-
-        /* Модальное окно */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            z-index: 2000;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 20px;
-            max-width: 900px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .modal-header {
-            padding: 2rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            border-radius: 20px 20px 0 0;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .modal-close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .modal-close:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: rotate(90deg);
-        }
-
-        /* Секция услуг */
-        .services-section {
-            padding: 4rem 2rem;
-            background: white;
-            border-radius: 20px;
-            margin: 2rem auto;
-            max-width: 1400px;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .service-card {
-            background: var(--light);
-            padding: 2rem;
-            border-radius: 15px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .service-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow);
-            background: white;
-        }
-
-        .service-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .service-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .service-count {
-            color: #6b7280;
-        }
-
-        /* Контакты операторов */
-        .operators-section {
-            padding: 3rem 2rem;
-            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(243,244,246,0.95) 100%);
-            border-radius: 20px;
-            margin: 2rem auto;
-            max-width: 1400px;
-        }
-
-        .operator-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 15px;
-            margin-bottom: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            transition: all 0.3s ease;
-        }
-
-        .operator-card:hover {
-            transform: translateX(10px);
-            box-shadow: var(--shadow);
-        }
-
-        .operator-info h3 {
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .operator-services {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .operator-service-tag {
-            padding: 0.25rem 0.75rem;
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--secondary);
-            border-radius: 15px;
-            font-size: 0.875rem;
-        }
-
-        .operator-contact {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .contact-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .contact-phone {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .contact-whatsapp {
-            background: #25d366;
-            color: white;
-        }
-
-        .contact-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        /* Статистика */
-        .stats-section {
-            padding: 3rem 2rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-radius: 20px;
-            margin: 2rem auto;
-            max-width: 1400px;
-            color: white;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            text-align: center;
-        }
-
-        .stat-card {
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 900;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-
-        /* Футер */
-        footer {
-            background: var(--dark);
-            color: white;
-            padding: 3rem 2rem;
-            margin-top: 4rem;
-            border-radius: 20px 20px 0 0;
-        }
-
-        .footer-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-
-        .footer-section h3 {
-            margin-bottom: 1rem;
-        }
-
-        .footer-section a {
-            color: #9ca3af;
-            text-decoration: none;
-            display: block;
-            margin-bottom: 0.5rem;
-            transition: color 0.3s ease;
-        }
-
-        .footer-section a:hover {
-            color: white;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .social-link {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .social-link:hover {
-            background: var(--primary);
-            transform: translateY(-3px);
-        }
-
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .hero-container {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
-            .hero-content h1 {
-                font-size: 2rem;
-            }
-
-            .nav-menu {
-                display: none;
-            }
-
-            .places-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .search-container {
-                flex-direction: column;
-            }
-        }
-
-        /* Анимация загрузки */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Уведомления */
-        .notification {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: var(--shadow-lg);
-            z-index: 3000;
-            animation: slideInRight 0.3s ease;
-            display: none;
-        }
-
-        .notification.show {
-            display: block;
-        }
-
-        @keyframes slideInRight {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
-        }
-
-        .notification.success {
-            border-left: 4px solid var(--secondary);
-        }
-
-        .notification.error {
-            border-left: 4px solid var(--danger);
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover">
+<title>Достопримечательности Краснодарского края — Твой интерактивный путеводитель</title>
+<meta name="description" content="Интерактивный гид по Краснодарскому краю: карта, что рядом, лучшие места, маршруты, винодегустации, море и горы.">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+<style>
+:root{
+  --bg:#0b0f14;--card:#111823;--ink:#e6edf5;--muted:#9fb0c3;--accent:#00B4F0;--accent-2:#4AC7F3;
+  --ok:#27ae60;--warn:#f39c12;--bad:#e74c3c;--border:#223044;--chip:#172233;--chip-on:#0f5e7b;
+  --shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+@media (prefers-color-scheme: light){
+  :root{--bg:#f5f7fb;--card:#ffffff;--ink:#0b1a2b;--muted:#5f6b7a;--accent:#0077ff;--accent-2:#5bb8ff;--border:#e4eaf3;--chip:#eef3fb;--chip-on:#d9ecff;--shadow:0 12px 30px rgba(16,42,67,.08)}
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--ink);line-height:1.4}
+a{color:var(--accent);text-decoration:none}
+header{
+  position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,0));
+  backdrop-filter:saturate(140%) blur(10px);
+}
+.nav{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 16px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow)}
+.badge{background:var(--chip);border:1px solid var(--border);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:12px}
+.main{max-width:1200px;margin:0 auto;padding:10px 16px 120px}
+.hero{
+  background:radial-gradient(1200px 400px at 50% -200px, rgba(0,180,240,.25), transparent), linear-gradient(180deg, rgba(0,0,0,.10), transparent);
+  border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:grid;gap:14px
+}
+.hero h1{font-size:26px;line-height:1.15;margin:0}
+.hero p{margin:0;color:var(--muted)}
+.controls{display:grid;gap:10px}
+.searchbar{display:flex;gap:8px;flex-wrap:wrap}
+.searchbar input{
+  flex:1;min-width:180px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--ink)
+}
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--chip);padding:10px 14px;border-radius:12px;color:var(--ink);cursor:pointer}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#00131b;border:none}
+.btn.ghost{background:var(--card)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:8px 12px;border-radius:999px;background:var(--chip);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-weight:600}
+.chip.active{background:var(--chip-on);color:#fff;border-color:transparent}
+.layout{display:grid;grid-template-columns: 1.1fr .9fr;gap:16px;margin-top:14px}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.mapwrap{order:-1}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+.panel header{position:unset;background:transparent;backdrop-filter:none}
+.panel .head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+.list{display:grid;gap:10px;padding:10px}
+.card{
+  display:grid;grid-template-columns:120px 1fr;gap:12px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--card)
+}
+@media(max-width:560px){.card{grid-template-columns:1fr}}
+.card img{width:100%;height:100%;max-height:160px;object-fit:cover}
+.card-body{padding:10px 10px 12px}
+.card h3{margin:0 0 6px 0;font-size:16px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:12px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tag{background:var(--chip);color:var(--muted);border:1px solid var(--border);padding:4px 8px;border-radius:999px;font-size:12px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.kpi{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:8px}
+.kpi b{color:var(--ink)}
+.mapwrap{position:sticky;top:76px;height:calc(100vh - 100px);min-height:420px}
+#map{width:100%;height:100%;border-radius:16px;border:1px solid var(--border);overflow:hidden}
+.footerbar{
+  position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.6));
+  padding:12px;z-index:60
+}
+.route{
+  max-width:1200px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;box-shadow:var(--shadow);
+  display:grid;gap:10px
+}
+.route .title{display:flex;align-items:center;gap:10px}
+.stops{display:flex;overflow:auto;gap:8px;padding-bottom:4px}
+.stop{min-width:180px;border:1px dashed var(--border);padding:8px;border-radius:10px;display:grid;gap:6px;background:var(--chip)}
+.stop .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.stop .small{font-size:12px;color:var(--muted)}
+.stop .del{border:none;background:transparent;color:var(--bad);cursor:pointer}
+.route .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+label.slider{display:flex;align-items:center;gap:8px;color:var(--muted)}
+label.slider input{accent-color:var(--accent)}
+.toast{
+  position:fixed;inset:auto 16px 86px auto;background:var(--card);border:1px solid var(--border);padding:10px 12px;border-radius:10px;
+  box-shadow:var(--shadow);color:var(--ink);font-size:13px;z-index:70;display:none
+}
+.empty{padding:24px;color:var(--muted)}
+hr.sep{border:none;border-top:1px dashed var(--border);margin:8px 0}
+</style>
 </head>
 <body>
-    <!-- Навигация -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">
-                <i class="fas fa-map-marked-alt"></i>
-                Открой Россию
-            </div>
-            <ul class="nav-menu">
-                <li><a href="#" class="nav-link active" onclick="showSection('home')">Главная</a></li>
-                <li><a href="#" class="nav-link" onclick="showSection('map')">Карта</a></li>
-                <li><a href="#" class="nav-link" onclick="showSection('places')">Места</a></li>
-                <li><a href="#" class="nav-link" onclick="showSection('services')">Услуги</a></li>
-                <li><a href="#" class="nav-link" onclick="showSection('operators')">Туроператоры</a></li>
-            </ul>
-        </div>
-    </nav>
+<header>
+  <div class="nav">
+    <div class="brand"><div class="logo"></div><div>Край Гид</div><span class="badge">Краснодарский край</span></div>
+    <div style="flex:1"></div>
+    <button class="btn ghost" id="btn-share" title="Поделиться подборкой">Поделиться</button>
+    <button class="btn ghost" id="btn-favs" title="Избранное">Избранное <span id="fav-count" class="badge" style="margin-left:6px">0</span></button>
+  </div>
+</header>
 
-    <!-- Главный экран -->
-    <section class="hero">
-        <div class="hero-container">
-            <div class="hero-content">
-                <h1>Откройте для себя всю красоту России</h1>
-                <p>Более 10 000 достопримечательностей, 500+ туроператоров и сотни приключений ждут вас!</p>
-                <div class="hero-buttons">
-                    <button class="btn btn-location" onclick="getLocation()">
-                        <i class="fas fa-location-arrow"></i>
-                        Что рядом со мной?
-                    </button>
-                    <button class="btn btn-primary" onclick="showSection('map')">
-                        <i class="fas fa-map"></i>
-                        Открыть карту
-                    </button>
-                    <button class="btn btn-secondary" onclick="showRandomPlace()">
-                        <i class="fas fa-random"></i>
-                        Случайное место
-                    </button>
-                </div>
-            </div>
-            <div class="hero-stats">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">10,000+</div>
-                        <div class="stat-label">Достопримечательностей</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">500+</div>
-                        <div class="stat-label">Туроператоров</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">85</div>
-                        <div class="stat-label">Регионов</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">24/7</div>
-                        <div class="stat-label">Поддержка</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Поиск и фильтры -->
-    <section class="search-section">
-        <div class="search-container">
-            <input type="text" class="search-input" placeholder="Поиск мест, городов, активностей..." id="searchInput">
-            <button class="btn btn-primary" onclick="searchPlaces()">
-                <i class="fas fa-search"></i>
-                Найти
-            </button>
-        </div>
-        <div class="filters">
-            <div class="filter-chip active" onclick="filterBy('all')">Все</div>
-            <div class="filter-chip" onclick="filterBy('nature')">
-                <i class="fas fa-mountain"></i> Природа
-            </div>
-            <div class="filter-chip" onclick="filterBy('history')">
-                <i class="fas fa-monument"></i> История
-            </div>
-            <div class="filter-chip" onclick="filterBy('culture')">
-                <i class="fas fa-theater-masks"></i> Культура
-            </div>
-            <div class="filter-chip" onclick="filterBy('adventure')">
-                <i class="fas fa-hiking"></i> Приключения
-            </div>
-            <div class="filter-chip" onclick="filterBy('family')">
-                <i class="fas fa-child"></i> Для семьи
-            </div>
-            <div class="filter-chip" onclick="filterBy('extreme')">
-                <i class="fas fa-parachute-box"></i> Экстрим
-            </div>
-        </div>
-    </section>
-
-    <!-- Карта -->
-    <section class="search-section">
-        <h2 style="margin-bottom: 1rem;">Интерактивная карта достопримечательностей</h2>
-        <div id="map"></div>
-    </section>
-
-    <!-- Карточки мест -->
-    <section class="search-section">
-        <h2 style="margin-bottom: 2rem;">Популярные направления</h2>
-        <div class="places-grid" id="placesGrid">
-            <!-- Места будут добавлены через JavaScript -->
-        </div>
-    </section>
-
-    <!-- Услуги -->
-    <section class="services-section">
-        <h2 style="margin-bottom: 1rem;">Виды активного отдыха</h2>
-        <div class="services-grid">
-            <div class="service-card" onclick="filterByService('jeeping')">
-                <div class="service-icon"><i class="fas fa-truck-monster"></i></div>
-                <div class="service-title">Джипинг</div>
-                <div class="service-count">150+ маршрутов</div>
-            </div>
-            <div class="service-card" onclick="filterByService('rafting')">
-                <div class="service-icon"><i class="fas fa-water"></i></div>
-                <div class="service-title">Рафтинг</div>
-                <div class="service-count">80+ рек</div>
-            </div>
-            <div class="service-card" onclick="filterByService('kayaking')">
-                <div class="service-icon"><i class="fas fa-ship"></i></div>
-                <div class="service-title">Байдарки</div>
-                <div class="service-count">200+ маршрутов</div>
-            </div>
-            <div class="service-card" onclick="filterByService('hiking')">
-                <div class="service-icon"><i class="fas fa-hiking"></i></div>
-                <div class="service-title">Треккинг</div>
-                <div class="service-count">500+ троп</div>
-            </div>
-            <div class="service-card" onclick="filterByService('diving')">
-                <div class="service-icon"><i class="fas fa-swimmer"></i></div>
-                <div class="service-title">Дайвинг</div>
-                <div class="service-count">50+ спотов</div>
-            </div>
-            <div class="service-card" onclick="filterByService('paragliding')">
-                <div class="service-icon"><i class="fas fa-parachute-box"></i></div>
-                <div class="service-title">Параплан</div>
-                <div class="service-count">30+ точек</div>
-            </div>
-            <div class="service-card" onclick="filterByService('climbing')">
-                <div class="service-icon"><i class="fas fa-mountain"></i></div>
-                <div class="service-title">Альпинизм</div>
-                <div class="service-count">100+ маршрутов</div>
-            </div>
-            <div class="service-card" onclick="filterByService('skiing')">
-                <div class="service-icon"><i class="fas fa-skiing"></i></div>
-                <div class="service-title">Горные лыжи</div>
-                <div class="service-count">70+ курортов</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Туроператоры -->
-    <section class="operators-section">
-        <h2 style="margin-bottom: 2rem;">Проверенные туроператоры</h2>
-        <div id="operatorsList">
-            <!-- Операторы будут добавлены через JavaScript -->
-        </div>
-    </section>
-
-    <!-- Модальное окно -->
-    <div class="modal" id="placeModal">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">
-                <i class="fas fa-times"></i>
-            </button>
-            <div class="modal-header">
-                <h2 id="modalTitle">Название места</h2>
-                <p id="modalLocation">Расположение</p>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Содержимое модального окна -->
-            </div>
-        </div>
+<main class="main">
+  <section class="hero">
+    <div>
+      <h1>Лучшие места Краснодарского края: море, горы, вино и адреналин</h1>
+      <p>Найди, что рядом, собери маршрут в один тап и поезжай. Всё — на одной карте.</p>
     </div>
-
-    <!-- Уведомления -->
-    <div class="notification" id="notification">
-        <p id="notificationText"></p>
+    <div class="controls">
+      <div class="searchbar">
+        <input id="q" type="search" placeholder="Поиск: «Сафари-парк», «Роза Хутор», «вино», «водопады», «семья»…">
+        <button class="btn" id="btn-locate">📍 Рядом со мной</button>
+        <button class="btn primary" id="btn-reset">Сбросить фильтры</button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="searchbar">
+        <label class="slider">Радиус (км от меня): <b id="rad-val">100</b>
+          <input id="radius" type="range" min="5" max="400" step="5" value="100">
+        </label>
+        <label class="slider">Сортировка:
+          <select id="sort">
+            <option value="distance">По расстоянию</option>
+            <option value="rating">По рейтингу</option>
+            <option value="popularity">По популярности</option>
+            <option value="name">По названию</option>
+          </select>
+        </label>
+      </div>
     </div>
+  </section>
 
-    <!-- Футер -->
-    <footer>
-        <div class="footer-container">
-            <div class="footer-section">
-                <h3>О проекте</h3>
-                <p>Открой Россию - ваш гид по самым интересным местам страны. Мы собрали всю информацию о достопримечательностях и активном отдыхе в одном месте.</p>
-                <div class="social-links">
-                    <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
-                </div>
-            </div>
-            <div class="footer-section">
-                <h3>Быстрые ссылки</h3>
-                <a href="#">Популярные маршруты</a>
-                <a href="#">Новые места</a>
-                <a href="#">Гиды и экскурсоводы</a>
-                <a href="#">Блог о путешествиях</a>
-            </div>
-            <div class="footer-section">
-                <h3>Помощь</h3>
-                <a href="#">Как пользоваться</a>
-                <a href="#">Частые вопросы</a>
-                <a href="#">Контакты</a>
-                <a href="#">Партнерам</a>
-            </div>
-            <div class="footer-section">
-                <h3>Контакты</h3>
-                <p><i class="fas fa-phone"></i> +7 (800) 555-35-35</p>
-                <p><i class="fas fa-envelope"></i> info@openrussia.ru</p>
-                <p><i class="fas fa-clock"></i> Круглосуточная поддержка</p>
-            </div>
+  <section class="layout">
+    <div class="panel">
+      <div class="head">
+        <div style="font-weight:700">Каталог мест</div>
+        <div style="display:flex;gap:8px;align-items:center;color:var(--muted)">
+          <span id="count">0</span> мест · <span id="near">нет геопозиции</span>
         </div>
-    </footer>
+      </div>
+      <div class="list" id="list"></div>
+    </div>
+    <div class="mapwrap panel">
+      <div id="map"></div>
+    </div>
+  </section>
+</main>
 
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script>
-        // База данных достопримечательностей (пример)
-        const places = [
-            {
-                id: 1,
-                name: "Красная площадь",
-                category: "history",
-                location: "Москва",
-                coordinates: [55.7539, 37.6208],
-                description: "Главная площадь России, символ страны с Кремлем и Собором Василия Блаженного",
-                rating: 4.9,
-                image: "🏛️",
-                services: ["экскурсии", "фотосессии"],
-                operators: ["Московские экскурсии", "Гид по столице"]
-            },
-            {
-                id: 2,
-                name: "Байкал",
-                category: "nature",
-                location: "Иркутская область",
-                coordinates: [53.5587, 108.1650],
-                description: "Самое глубокое озеро в мире с кристально чистой водой",
-                rating: 5.0,
-                image: "🏔️",
-                services: ["дайвинг", "треккинг", "байдарки"],
-                operators: ["Байкальские приключения", "Сибирь-тур"]
-            },
-            {
-                id: 3,
-                name: "Эрмитаж",
-                category: "culture",
-                location: "Санкт-Петербург",
-                coordinates: [59.9398, 30.3146],
-                description: "Один из крупнейших музеев мира с уникальной коллекцией искусства",
-                rating: 4.8,
-                image: "🎨",
-                services: ["экскурсии", "аудиогиды"],
-                operators: ["Питер-гид", "Невские экскурсии"]
-            },
-            {
-                id: 4,
-                name: "Камчатка",
-                category: "adventure",
-                location: "Камчатский край",
-                coordinates: [56.1327, 159.5314],
-                description: "Край вулканов, гейзеров и дикой природы",
-                rating: 4.9,
-                image: "🌋",
-                services: ["джипинг", "вертолетные туры", "треккинг"],
-                operators: ["Камчатка-экстрим", "Вулкан-тур"]
-            },
-            {
-                id: 5,
-                name: "Алтай",
-                category: "extreme",
-                location: "Республика Алтай",
-                coordinates: [50.7114, 86.8577],
-                description: "Горная страна с потрясающими пейзажами и экстремальными маршрутами",
-                rating: 4.9,
-                image: "⛰️",
-                services: ["рафтинг", "джипинг", "альпинизм"],
-                operators: ["Алтай-актив", "Горный Алтай тур"]
-            },
-            {
-                id: 6,
-                name: "Сочи Парк",
-                category: "family",
-                location: "Сочи",
-                coordinates: [43.4020, 39.9570],
-                description: "Тематический парк развлечений для всей семьи",
-                rating: 4.7,
-                image: "🎢",
-                services: ["аттракционы", "шоу", "квесты"],
-                operators: ["Сочи для детей", "Семейный отдых"]
-            },
-            {
-                id: 7,
-                name: "Кижи",
-                category: "history",
-                location: "Республика Карелия",
-                coordinates: [62.0669, 35.2256],
-                description: "Музей деревянного зодчества под открытым небом",
-                rating: 4.8,
-                image: "⛪",
-                services: ["экскурсии", "мастер-классы"],
-                operators: ["Карелия-тур", "Онежские путешествия"]
-            },
-            {
-                id: 8,
-                name: "Домбай",
-                category: "extreme",
-                location: "Карачаево-Черкесия",
-                coordinates: [43.2906, 41.6251],
-                description: "Горнолыжный курорт с отличными трассами",
-                rating: 4.7,
-                image: "🎿",
-                services: ["горные лыжи", "сноуборд", "канатная дорога"],
-                operators: ["Домбай-ски", "Кавказ экстрим"]
-            }
-        ];
+<div class="footerbar">
+  <div class="route">
+    <div class="title"><b>Маршрут</b> <span id="route-stats" class="badge">пусто</span></div>
+    <div class="stops" id="stops"></div>
+    <div class="row">
+      <button class="btn" id="btn-opt">Оптимизировать порядок</button>
+      <button class="btn" id="btn-clear">Очистить</button>
+      <div style="flex:1"></div>
+      <button class="btn" id="btn-ymaps">Открыть в Яндекс.Картах</button>
+      <button class="btn" id="btn-gmaps">Открыть в Google Maps</button>
+    </div>
+  </div>
+</div>
 
-        // База туроператоров
-        const operators = [
-            {
-                name: "Байкальские приключения",
-                region: "Иркутская область",
-                services: ["джипинг", "байдарки", "треккинг"],
-                phone: "+7 (902) 123-45-67",
-                whatsapp: "+79021234567",
-                rating: 4.9
-            },
-            {
-                name: "Камчатка-экстрим",
-                region: "Камчатский край",
-                services: ["вертолетные туры", "джипинг", "рыбалка"],
-                phone: "+7 (914) 234-56-78",
-                whatsapp: "+79142345678",
-                rating: 5.0
-            },
-            {
-                name: "Алтай-актив",
-                region: "Республика Алтай",
-                services: ["рафтинг", "конные туры", "альпинизм"],
-                phone: "+7 (903) 345-67-89",
-                whatsapp: "+79033456789",
-                rating: 4.8
-            },
-            {
-                name: "Карелия-тур",
-                region: "Республика Карелия",
-                services: ["байдарки", "рыбалка", "экскурсии"],
-                phone: "+7 (921) 456-78-90",
-                whatsapp: "+79214567890",
-                rating: 4.7
-            },
-            {
-                name: "Кавказ экстрим",
-                region: "Северный Кавказ",
-                services: ["параплан", "джипинг", "каньонинг"],
-                phone: "+7 (928) 567-89-01",
-                whatsapp: "+79285678901",
-                rating: 4.9
-            }
-        ];
+<div class="toast" id="toast"></div>
 
-        // Инициализация карты
-        let map;
-        let userMarker;
-        let userLocation = null;
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
+<script>
+/* ------------ ДАННЫЕ ------------- */
+const CATEGORIES = [
+  {id:'sea', label:'Море/пляжи'}, {id:'mountain', label:'Горы/видовые'},
+  {id:'nature', label:'Природа/водопады'}, {id:'adventure', label:'Экстрим/парки'},
+  {id:'wine', label:'Вино/дегустации'}, {id:'culture', label:'Культура/парки'},
+  {id:'family', label:'Семья/детям'}, {id:'city', label:'Город/скверы'}
+];
 
-        function initMap() {
-            map = L.map('map').setView([55.7558, 37.6173], 5);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
+const ATTRACTIONS = [
+  {id:1,name:'Парк «Краснодар»',city:'Краснодар',lat:45.0445,lon:39.0137,
+   cats:['city','family','culture'], rating:4.9,pop:99, price:'бесплатно',
+   img:'https://images.unsplash.com/photo-1564410267848-db70534a26a4?auto=format&fit=crop&w=1200&q=60',
+   desc:'Икона современного паркового дизайна: амфитеатры, фонтаны, медиа-экран, дендросад.',
+   partner:null},
+  {id:2,name:'Абрау-Дюрсо и озеро Абрау',city:'Новороссийск',lat:44.7039,lon:37.5828,
+   cats:['wine','nature','family'], rating:4.8,pop:95, price:'билеты/дегустации',
+   img:'https://images.unsplash.com/photo-1532635210-d02b640c32df?auto=format&fit=crop&w=1200&q=60',
+   desc:'Центр русского шампанского, прогулки по озеру, гастрономия и винные туры.',
+   partner:{label:'Винный тур', url:'https://yandex.ru/maps/?text=%D0%90%D0%B1%D1%80%D0%B0%D1%83%20%D0%B4%D1%8E%D1%80%D1%81%D0%BE'}},
+  {id:3,name:'Заповедник Большой Утриш',city:'Анапа',lat:44.8278,lon:37.4392,
+   cats:['sea','nature'], rating:4.7,pop:88, price:'входной',
+   img:'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1200&q=60',
+   desc:'Лагуны, можжевеловые рощи и бирюзовые бухты. Снорклинг и треккинг.',
+   partner:null},
+  {id:4,name:'Озеро Сукко (кипарисы в воде)',city:'Анапа',lat:44.7762,lon:37.4844,
+   cats:['nature','family'], rating:4.7,pop:91, price:'бесплатно',
+   img:'https://images.unsplash.com/photo-1520086846052-d4c83634ed71?auto=format&fit=crop&w=1200&q=60',
+   desc:'Знаменитые затопленные кипарисы. Лучшие кадры — осенью.',
+   partner:null},
+  {id:5,name:'Сафари-парк Геленджик',city:'Геленджик',lat:44.5659,lon:38.1098,
+   cats:['family','adventure'], rating:4.6,pop:92, price:'билеты',
+   img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=60',
+   desc:'Канатная дорога, панорамы бухты, реабилитация животных.',
+   partner:{label:'Купить билет',url:'https://yandex.ru/maps/?text=%D0%A1%D0%B0%D1%84%D0%B0%D1%80%D0%B8%20%D0%BF%D0%B0%D1%80%D0%BA%20%D0%93%D0%B5%D0%BB%D0%B5%D0%BD%D0%B4%D0%B6%D0%B8%D0%BA'}},
+  {id:6,name:'Скала Парус',city:'Прасковеевка',lat:44.4985,lon:37.9883,
+   cats:['sea','nature'], rating:4.6,pop:83, price:'бесплатно',
+   img:'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=60',
+   desc:'Визитка побережья: узкая каменная арка у самой кромки моря.',
+   partner:null},
+  {id:7,name:'Старый парк',city:'Кабардинка',lat:44.6497,lon:37.9348,
+   cats:['culture','family'], rating:4.7,pop:80, price:'билеты',
+   img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=60',
+   desc:'Авторский этнопарк: античность, средневековье, Восток — на компактной территории.',
+   partner:null},
+  {id:8,name:'Долина лотосов (Ахтанизовский лиман)',city:'Темрюк',lat:45.2722,lon:37.1530,
+   cats:['nature','sea'], rating:4.6,pop:77, price:'прогулка/катер',
+   img:'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=60',
+   desc:'Лотосы цветут в июле–августе. Водные прогулки по каналам лимана.',
+   partner:null},
+  {id:9,name:'Грязевой вулкан Тиздар',city:'Темрюк',lat:45.2389,lon:36.9881,
+   cats:['adventure','nature'], rating:4.5,pop:75, price:'билеты',
+   img:'https://images.unsplash.com/photo-1499696010180-025efef15781?auto=format&fit=crop&w=1200&q=60',
+   desc:'Уникальные грязевые ванны с видом на Тамань и море.',
+   partner:null},
+  {id:10,name:'Долина Лефкадия (винодельня)',city:'Крымск',lat:44.8744,lon:38.4187,
+   cats:['wine','nature','family'], rating:4.8,pop:82, price:'дегустации',
+   img:'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?auto=format&fit=crop&w=1200&q=60',
+   desc:'Сады, энотуризм, музей вина. Отличный уикенд для гурманов.',
+   partner:{label:'Тур/дегустация',url:'https://yandex.ru/maps/?text=%D0%9B%D0%B5%D1%84%D0%BA%D0%B0%D0%B4%D0%B8%D1%8F'}},
+  {id:11,name:'Горный курорт «Роза Хутор»',city:'Сочи (Красная Поляна)',lat:43.67,lon:40.2065,
+   cats:['mountain','adventure','family'], rating:4.8,pop:98, price:'подъёмники/пасс',
+   img:'https://images.unsplash.com/photo-1541844053589-346841d0d3a8?auto=format&fit=crop&w=1200&q=60',
+   desc:'Канатки, видовые тропы, маршруты на весь год. Сердце Поляны.',
+   partner:{label:'Ски-пассы/летние билеты',url:'https://yandex.ru/maps/?text=%D0%A0%D0%BE%D0%B7%D0%B0%20%D0%A5%D1%83%D1%82%D0%BE%D1%80'}},
+  {id:12,name:'Олимпийский парк',city:'Сочи (Имеретинка)',lat:43.4020,lon:39.9550,
+   cats:['family','culture','city'], rating:4.7,pop:90, price:'частично платно',
+   img:'https://images.unsplash.com/photo-1518084823714-b8570d3d2a3a?auto=format&fit=crop&w=1200&q=60',
+   desc:'Прогулки вдоль арен и набережной, вечерние шоу фонтанов.',
+   partner:null},
+  {id:13,name:'Skypark AJ Hackett',city:'Сочи (Мзымта)',lat:43.5329,lon:39.9805,
+   cats:['adventure','mountain'], rating:4.7,pop:85, price:'аттракционы',
+   img:'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=60',
+   desc:'Подвесной мост, банджи-джампинг и вид на каньоны.',
+   partner:null},
+  {id:14,name:'Сочинский дендрарий',city:'Сочи',lat:43.5812,lon:39.7285,
+   cats:['culture','family','nature'], rating:4.7,pop:86, price:'билеты',
+   img:'https://images.unsplash.com/photo-1558980664-10b1b13a1b06?auto=format&fit=crop&w=1200&q=60',
+   desc:'Исторический парк с канатной дорогой и коллекцией экзотов.',
+   partner:null},
+  {id:15,name:'Агурские водопады',city:'Сочи',lat:43.5434,lon:39.8576,
+   cats:['nature','mountain'], rating:4.6,pop:84, price:'экотропа',
+   img:'https://images.unsplash.com/photo-1520975922203-bc1ae19d01df?auto=format&fit=crop&w=1200&q=60',
+   desc:'Каскады в теснине, рядом — Орлиные скалы и вид на море.',
+   partner:null},
+  {id:16,name:'33 водопада',city:'Сочи (Кичмай)',lat:43.8297,lon:39.3923,
+   cats:['nature','family'], rating:4.6,pop:80, price:'экотропа',
+   img:'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=60',
+   desc:'Маршрут по деревянным настилам вдоль каскадов реки Джегош.',
+   partner:null},
+  {id:17,name:'Гора Ахун и башня',city:'Сочи',lat:43.5234,lon:39.8689,
+   cats:['mountain','nature'], rating:4.7,pop:83, price:'билеты на башню',
+   img:'https://images.unsplash.com/photo-1520975693416-35a4f7b5b2ab?auto=format&fit=crop&w=1200&q=60',
+   desc:'Лучшие смотровые сочинского побережья.',
+   partner:null},
+  {id:18,name:'Тисо-самшитовая роща (Хоста)',city:'Сочи',lat:43.5226,lon:39.8609,
+   cats:['nature'], rating:4.7,pop:79, price:'экотропа',
+   img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=60',
+   desc:'Реликтовые леса, каньоны и висячие мхи.',
+   partner:null},
+  {id:19,name:'Каньон реки Псахо',city:'Сочи',lat:43.5486,lon:39.8349,
+   cats:['nature','adventure'], rating:4.6,pop:78, price:'экотропа',
+   img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=60',
+   desc:'Изумрудные ванны и карстовые галереи.',
+   partner:null},
+  {id:20,name:'Гуамское ущелье (узкоколейка)',city:'Апшеронск',lat:44.2289,lon:39.3818,
+   cats:['nature','adventure','mountain'], rating:4.7,pop:81, price:'ж/д маршрут',
+   img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=60',
+   desc:'Поезд вдоль отвесных скал и реки Курджипс.',
+   partner:null},
+  {id:21,name:'Скала Киселёва',city:'Туапсе',lat:44.0626,lon:39.0833,
+   cats:['sea','nature'], rating:4.6,pop:72, price:'бесплатно',
+   img:'https://images.unsplash.com/photo-1487537708572-3c850b5e856e?auto=format&fit=crop&w=1200&q=60',
+   desc:'Съёмочная локация “Бриллиантовой руки”.',
+   partner:null},
+  {id:22,name:'Дольмены долины Жане',city:'Геленджик',lat:44.4868,lon:38.2211,
+   cats:['culture','nature'], rating:4.5,pop:70, price:'входной',
+   img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=60',
+   desc:'Мистические мегалиты и водопады по пути.',
+   partner:null},
+  {id:23,name:'Винодельня Мысхако',city:'Новороссийск',lat:44.6686,lon:37.7188,
+   cats:['wine','sea'], rating:4.7,pop:76, price:'дегустации',
+   img:'https://images.unsplash.com/photo-1470145318698-cb03732f5ddf?auto=format&fit=crop&w=1200&q=60',
+   desc:'Виды на Цемесскую бухту и гастро-террасы.',
+   partner:null},
+  {id:24,name:'Голубая бухта',city:'Геленджик',lat:44.5232,lon:38.0475,
+   cats:['sea','family'], rating:4.6,pop:74, price:'бесплатно',
+   img:'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1200&q=60',
+   desc:'Укромные пляжи и хвойный воздух.',
+   partner:null},
+  {id:25,name:'Навалищенское ущелье',city:'Сочи (Хоста)',lat:43.5668,lon:39.7883,
+   cats:['nature','adventure'], rating:4.5,pop:68, price:'экотропа',
+   img:'https://images.unsplash.com/photo-1520975922203-bc1ae19d01df?auto=format&fit=crop&w=1200&q=60',
+   desc:'Лёгкий трек в тени самшита и тиса.',
+   partner:null}
+];
 
-            // Добавление маркеров мест
-            places.forEach(place => {
-                const marker = L.marker(place.coordinates)
-                    .bindPopup(`
-                        <strong>${place.name}</strong><br>
-                        ${place.location}<br>
-                        <button class="btn btn-primary" style="margin-top: 10px; padding: 5px 10px; font-size: 0.9rem;" onclick="showPlaceDetails(${place.id})">Подробнее</button>
-                    `)
-                    .addTo(map);
-            });
-        }
+/* ------------ УТИЛИТЫ ------------- */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const km = d => (d).toFixed(1)+' км';
+function haversine(a,b){ // km
+  const R=6371, toRad=x=>x*Math.PI/180;
+  const dLat=toRad(b.lat-a.lat), dLon=toRad(b.lon-a.lon);
+  const s=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+function toast(msg, ms=2200){const t=$("#toast");t.textContent=msg;t.style.display='block';clearTimeout(t._to);t._to=setTimeout(()=>t.style.display='none',ms);}
 
-        // Получение геолокации
-        function getLocation() {
-            if (navigator.geolocation) {
-                showNotification('Определяем ваше местоположение...', 'success');
-                navigator.geolocation.getCurrentPosition(showPosition, showError);
-            } else {
-                showNotification('Геолокация не поддерживается вашим браузером', 'error');
-            }
-        }
+/* ------------ СОСТОЯНИЕ ------------- */
+let userPos=null; // {lat,lon}
+let activeCats=new Set(); // chips
+let query=''; let radius=100;
+let sortMode='distance';
+let markers=[]; let map; let layer;
 
-        function showPosition(position) {
-            userLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude
-            };
+const favs = new Set(JSON.parse(localStorage.getItem('kk-favs')||'[]'));
+const route = JSON.parse(localStorage.getItem('kk-route')||'[]'); // ids[]
 
-            // Добавление маркера пользователя на карту
-            if (userMarker) {
-                map.removeLayer(userMarker);
-            }
+/* ------------ ИНИТ UI ------------- */
+function buildChips(){
+  const wrap=$("#chips"); wrap.innerHTML='';
+  CATEGORIES.forEach(c=>{
+    const el=document.createElement('button');
+    el.className='chip'; el.textContent=c.label; el.dataset.id=c.id;
+    el.onclick=()=>{ 
+      if(activeCats.has(c.id)) activeCats.delete(c.id); else activeCats.add(c.id);
+      el.classList.toggle('active');
+      renderAll();
+    };
+    wrap.appendChild(el);
+  });
+}
+function buildMap(){
+  map=L.map('map',{scrollWheelZoom:true}).setView([44.9,38.7],8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom:19, attribution:'© OpenStreetMap'
+  }).addTo(map);
+  layer=L.layerGroup().addTo(map);
+}
 
-            userMarker = L.marker([userLocation.lat, userLocation.lng], {
-                icon: L.icon({
-                    iconUrl: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232563eb"%3E%3Cpath d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/%3E%3C/svg%3E',
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 40]
-                })
-            }).addTo(map);
+/* ------------ ФИЛЬТР/СОРТ ------------ */
+function filterData(){
+  let data=[...ATTRACTIONS];
+  if(query){
+    const q=query.toLowerCase();
+    data=data.filter(x=> (x.name+x.city+x.desc+x.cats.join(',')).toLowerCase().includes(q));
+  }
+  if(activeCats.size) data=data.filter(x=> x.cats.some(c=>activeCats.has(c)));
+  if(userPos){ data.forEach(x=> x._d=haversine(userPos,{lat:x.lat,lon:x.lon})); }
+  else { data.forEach(x=> x._d=Infinity); }
+  if(userPos) data=data.filter(x=> x._d<=radius);
+  data.sort((a,b)=>{
+    if(sortMode==='distance') return (a._d)-(b._d);
+    if(sortMode==='rating') return (b.rating)-(a.rating);
+    if(sortMode==='popularity') return (b.pop)-(a.pop);
+    if(sortMode==='name') return a.name.localeCompare(b.name,'ru');
+    return 0;
+  });
+  return data;
+}
 
-            map.setView([userLocation.lat, userLocation.lng], 10);
+/* ------------ РЕНДЕР СПИСКА ------------ */
+function renderList(data){
+  const wrap=$("#list"); wrap.innerHTML='';
+  if(!data.length){wrap.innerHTML=`<div class="empty">Ничего не найдено. Попробуй сбросить фильтры или расширить радиус.</div>`; return}
+  data.forEach(x=>{
+    const fav=favs.has(x.id);
+    const inRoute=route.includes(x.id);
+    const d = Number.isFinite(x._d)? km(x._d): '—';
+    const card=document.createElement('article');
+    card.className='card';
+    card.innerHTML=`
+      <img src="${x.img}" alt="${x.name}" loading="lazy">
+      <div class="card-body">
+        <h3>${x.name}</h3>
+        <div class="meta">
+          <span>📍 ${x.city}</span>
+          <span>⭐ ${x.rating.toFixed(1)}</span>
+          <span>📏 ${d}</span>
+        </div>
+        <div class="tags">${x.cats.map(c=>`<span class="tag">#${c}</span>`).join('')}</div>
+        <div class="kpi"><span>Стоимость: <b>${x.price}</b></span><span>Популярность: <b>${x.pop}</b></span></div>
+        <div class="actions">
+          <button class="btn" data-act="route">${inRoute?'В маршруте ✅':'В маршрут'}</button>
+          <button class="btn ghost" data-act="nav">Маршрут к месту</button>
+          ${x.partner?`<a class="btn primary" href="${x.partner.url}" target="_blank" rel="noopener">${x.partner.label}</a>`:''}
+          <button class="btn ghost" data-act="fav">${fav?'★ В избранном':'☆ В избранное'}</button>
+          <button class="btn ghost" data-act="more">Подробнее</button>
+        </div>
+        <div class="more" style="display:none;margin-top:8px;color:var(--muted)">${x.desc}</div>
+      </div>`;
+    card.querySelector('[data-act="more"]').onclick=()=>card.querySelector('.more').style.display='block';
+    card.querySelector('[data-act="fav"]').onclick=()=>{
+      if(favs.has(x.id)) favs.delete(x.id); else favs.add(x.id);
+      localStorage.setItem('kk-favs',JSON.stringify([...favs]));
+      renderAll(); toast('Избранное обновлено');
+    };
+    card.querySelector('[data-act="route"]').onclick=()=>{
+      const idx=route.indexOf(x.id);
+      if(idx>=0) route.splice(idx,1); else route.push(x.id);
+      localStorage.setItem('kk-route',JSON.stringify(route));
+      renderAll(); toast('Маршрут обновлён');
+    };
+    card.querySelector('[data-act="nav"]').onclick=()=>{
+      openSingleNav(x);
+    };
+    wrap.appendChild(card);
+  });
+  $("#count").textContent=data.length;
+}
 
-            // Поиск ближайших мест
-            findNearbyPlaces();
-            showNotification('Местоположение определено!', 'success');
-        }
+/* ------------ КАРТА ------------ */
+function renderMap(data){
+  layer.clearLayers(); markers=[];
+  const bounds=[];
+  data.forEach(x=>{
+    const m=L.marker([x.lat,x.lon]).addTo(layer).bindPopup(
+      `<b>${x.name}</b><br>${x.city}<br>⭐ ${x.rating.toFixed(1)}${Number.isFinite(x._d)?` · ${km(x._d)}`:''}<br>
+       <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+         <a href="#" data-id="${x.id}" data-what="add" class="lnk">В маршрут</a>
+         <a href="#" data-id="${x.id}" data-what="nav" class="lnk">Навигатор</a>
+       </div>`
+    );
+    m.on('popupopen',e=>{
+      const el=e.popup.getElement();
+      el.querySelectorAll('a.lnk').forEach(a=>{
+        a.onclick=(ev)=>{
+          ev.preventDefault();
+          const id=+a.dataset.id; const item=ATTRACTIONS.find(z=>z.id===id);
+          if(a.dataset.what==='add'){
+            if(!route.includes(id)) route.push(id);
+            localStorage.setItem('kk-route',JSON.stringify(route));
+            renderAll(); toast('Добавлено в маршрут');
+          }else if(a.dataset.what==='nav'){ openSingleNav(item); }
+        };
+      });
+    });
+    markers.push(m); bounds.push([x.lat,x.lon]);
+  });
+  if(bounds.length) map.fitBounds(bounds,{padding:[20,20]});
+  if(userPos){
+    const userMarker=L.circleMarker([userPos.lat,userPos.lon],{radius:8,color:'#00b4f0',fillOpacity:.8}).addTo(layer).bindTooltip('Вы здесь');
+    bounds.push([userPos.lat,userPos.lon]);
+  }
+}
 
-        function showError(error) {
-            let message = '';
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    message = "Вы отклонили запрос на геолокацию";
-                    break;
-                case error.POSITION_UNAVAILABLE:
-                    message = "Информация о местоположении недоступна";
-                    break;
-                case error.TIMEOUT:
-                    message = "Время ожидания истекло";
-                    break;
-                case error.UNKNOWN_ERROR:
-                    message = "Произошла неизвестная ошибка";
-                    break;
-            }
-            showNotification(message, 'error');
-        }
+/* ------------ МАРШРУТ ------------ */
+function renderRoute(){
+  const box=$("#stops"); box.innerHTML='';
+  const items=route.map(id=>ATTRACTIONS.find(x=>x.id===id)).filter(Boolean);
+  let total=0;
+  if(items.length){
+    for(let i=0;i<items.length;i++){
+      const a=items[i], b=items[i+1]; if(b) total+=haversine(a,b);
+    }
+  }
+  items.forEach((x,i)=>{
+    const el=document.createElement('div');
+    el.className='stop';
+    el.innerHTML=`
+      <div class="row"><b>${i+1}. ${x.name}</b> <button class="del" title="Удалить">✕</button></div>
+      <div class="small">📍 ${x.city}</div>
+    `;
+    el.querySelector('.del').onclick=()=>{ route.splice(i,1); localStorage.setItem('kk-route',JSON.stringify(route)); renderAll(); };
+    box.appendChild(el);
+  });
+  $("#route-stats").textContent = items.length? `Точек: ${items.length} · Протяжённость ≈ ${km(total)}` : 'пусто';
+}
 
-        // Поиск ближайших мест
-        function findNearbyPlaces() {
-            if (!userLocation) {
-                showNotification('Сначала определите ваше местоположение', 'error');
-                return;
-            }
+function optimizeRoute(){
+  if(route.length<3){ toast('Нужно минимум 3 точки'); return }
+  // жадный алгоритм: старт — 1-я точка, дальше ближайшая
+  const points=route.map(id=>ATTRACTIONS.find(x=>x.id===id));
+  const used=new Set([points[0].id]); const order=[points[0]];
+  while(order.length<points.length){
+    const last=order[order.length-1];
+    const cand=points.filter(p=>!used.has(p.id)).map(p=>({p, d:haversine(last,p)})).sort((a,b)=>a.d-b.d)[0].p;
+    used.add(cand.id); order.push(cand);
+  }
+  const ids=order.map(x=>x.id); route.splice(0,route.length,...ids);
+  localStorage.setItem('kk-route',JSON.stringify(route));
+  renderAll(); toast('Маршрут упорядочен по близости');
+}
 
-            const nearbyPlaces = places.map(place => {
-                const distance = calculateDistance(
-                    userLocation.lat, userLocation.lng,
-                    place.coordinates[0], place.coordinates[1]
-                );
-                return { ...place, distance };
-            }).sort((a, b) => a.distance - b.distance);
+function openSingleNav(x){
+  const hasUser=!!userPos;
+  const ym = hasUser
+    ? `https://yandex.ru/maps/?rtext=${userPos.lat}%2C${userPos.lon}~${x.lat}%2C${x.lon}&rtt=auto`
+    : `https://yandex.ru/maps/?ll=${x.lon}%2C${x.lat}&z=13&pt=${x.lon}%2C${x.lat},pm2rdm`;
+  window.open(ym,'_blank','noopener');
+}
 
-            displayPlaces(nearbyPlaces.slice(0, 6));
-        }
+function openRouteYMaps(){
+  const items=route.map(id=>ATTRACTIONS.find(x=>x.id===id)).filter(Boolean);
+  if(!items.length){ toast('Добавь точки в маршрут'); return }
+  const parts=[];
+  if(userPos) parts.push(`${userPos.lat}%2C${userPos.lon}`);
+  items.forEach(x=>parts.push(`${x.lat}%2C${x.lon}`));
+  const url=`https://yandex.ru/maps/?rtext=${parts.join('~')}&rtt=auto`;
+  window.open(url,'_blank','noopener');
+}
+function openRouteGMaps(){
+  const items=route.map(id=>ATTRACTIONS.find(x=>x.id===id)).filter(Boolean);
+  if(!items.length){ toast('Добавь точки в маршрут'); return }
+  let origin='',dest='',way=[];
+  if(userPos){ origin=`${userPos.lat},${userPos.lon}`; dest=`${items.at(-1).lat},${items.at(-1).lon}`; way=items.slice(0,-1).map(x=>`${x.lat},${x.lon}`); }
+  else{ origin=`${items[0].lat},${items[0].lon}`; dest=`${items.at(-1).lat},${items.at(-1).lon}`; way=items.slice(1,-1).map(x=>`${x.lat},${x.lon}`); }
+  const url=`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=driving${way.length?`&waypoints=${way.join('|')}`:''}`;
+  window.open(url,'_blank','noopener');
+}
 
-        // Расчет расстояния между точками
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Радиус Земли в км
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
-                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
+/* ------------ ШЭРИНГ/ИЗБРАННОЕ ------------ */
+function applyShareFromURL(){
+  const p=new URLSearchParams(location.search);
+  const ids=(p.get('ids')||'').split(',').map(s=>+s).filter(Boolean);
+  if(ids.length){ route.splice(0,route.length,...ids); localStorage.setItem('kk-route',JSON.stringify(route)); }
+}
+function shareCurrent(){
+  const u=new URL(location.href);
+  if(route.length) u.searchParams.set('ids', route.join(','));
+  else u.searchParams.delete('ids');
+  navigator.clipboard.writeText(u.toString()).then(()=>toast('Ссылка скопирована')).catch(()=>toast(u.toString()));
+}
+function renderFavCount(){ $("#fav-count").textContent = favs.size }
 
-        // Отображение мест
-        function displayPlaces(placesToShow = places) {
-            const grid = document.getElementById('placesGrid');
-            grid.innerHTML = '';
+/* ------------ ГЕОПОЗИЦИЯ ------------- */
+function locate(){
+  if(!navigator.geolocation){ toast('Геолокация недоступна'); return }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    userPos={lat:pos.coords.latitude,lon:pos.coords.longitude};
+    $("#near").textContent=`${userPos.lat.toFixed(3)}, ${userPos.lon.toFixed(3)}`;
+    renderAll();
+    toast('Геопозиция определена');
+  },err=>{
+    toast('Не удалось определить геопозицию');
+  },{enableHighAccuracy:true,timeout:8000,maximumAge:60000});
+}
 
-            placesToShow.forEach(place => {
-                const card = document.createElement('div');
-                card.className = 'place-card';
-                card.innerHTML = `
-                    <div class="place-image">${place.image}</div>
-                    <div class="place-content">
-                        <span class="place-category">${getCategoryName(place.category)}</span>
-                        <h3 class="place-title">${place.name}</h3>
-                        <div class="place-location">
-                            <i class="fas fa-map-marker-alt"></i>
-                            ${place.location}
-                        </div>
-                        <p class="place-description">${place.description}</p>
-                        <div class="place-footer">
-                            <div class="place-rating">
-                                ${generateStars(place.rating)}
-                                <span>${place.rating}</span>
-                            </div>
-                            ${place.distance ? `<span class="place-distance">${place.distance.toFixed(1)} км</span>` : ''}
-                        </div>
-                    </div>
-                `;
-                card.onclick = () => showPlaceDetails(place.id);
-                grid.appendChild(card);
-            });
-        }
+/* ------------ РЕНДЕР ВСЕГО ------------- */
+function renderAll(){
+  const data=filterData();
+  renderList(data); renderMap(data); renderRoute(); renderFavCount();
+}
 
-        // Генерация звезд рейтинга
-        function generateStars(rating) {
-            let stars = '';
-            for (let i = 1; i <= 5; i++) {
-                if (i <= rating) {
-                    stars += '<i class="fas fa-star star"></i>';
-                } else if (i - 0.5 <= rating) {
-                    stars += '<i class="fas fa-star-half-alt star"></i>';
-                } else {
-                    stars += '<i class="far fa-star star"></i>';
-                }
-            }
-            return stars;
-        }
+/* ------------ СЛУШАТЕЛИ ------------- */
+buildChips();
+buildMap();
+applyShareFromURL();
+renderAll();
 
-        // Получение названия категории
-        function getCategoryName(category) {
-            const names = {
-                nature: 'Природа',
-                history: 'История',
-                culture: 'Культура',
-                adventure: 'Приключения',
-                family: 'Для семьи',
-                extreme: 'Экстрим'
-            };
-            return names[category] || category;
-        }
+$("#q").oninput=(e)=>{query=e.target.value.trim(); renderAll();}
+$("#btn-reset").onclick=()=>{query=''; $("#q").value=''; activeCats.clear(); $$('#chips .chip').forEach(x=>x.classList.remove('active')); renderAll();}
+$("#btn-locate").onclick=locate;
+$("#radius").oninput=(e)=>{radius=+e.target.value; $("#rad-val").textContent=radius; renderAll();}
+$("#sort").onchange=(e)=>{sortMode=e.target.value; renderAll();}
+$("#btn-opt").onclick=optimizeRoute;
+$("#btn-clear").onclick=()=>{route.splice(0,route.length); localStorage.setItem('kk-route',JSON.stringify(route)); renderAll();}
+$("#btn-ymaps").onclick=openRouteYMaps;
+$("#btn-gmaps").onclick=openRouteGMaps;
+$("#btn-share").onclick=shareCurrent;
+$("#btn-favs").onclick=()=>{
+  if(!favs.size){ toast('В избранном пусто'); return }
+  query=''; $("#q").value='';
+  activeCats.clear(); $$('#chips .chip').forEach(x=>x.classList.remove('active'));
+  const prevPos=userPos; userPos=null;
+  const data=ATTRACTIONS.filter(x=>favs.has(x.id)).map(x=>({...x,_d:Infinity}));
+  renderList(data); renderMap(data);
+  $("#near").textContent='избранное';
+  userPos=prevPos;
+  toast('Показаны избранные места');
+};
 
-        // Показ деталей места
-        function showPlaceDetails(placeId) {
-            const place = places.find(p => p.id === placeId);
-            if (!place) return;
-
-            const modal = document.getElementById('placeModal');
-            document.getElementById('modalTitle').textContent = place.name;
-            document.getElementById('modalLocation').textContent = place.location;
-            
-            const modalBody = document.getElementById('modalBody');
-            modalBody.innerHTML = `
-                <div style="margin-bottom: 2rem;">
-                    <h3>Описание</h3>
-                    <p>${place.description}</p>
-                </div>
-                <div style="margin-bottom: 2rem;">
-                    <h3>Доступные услуги</h3>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        ${place.services.map(service => `
-                            <span class="operator-service-tag">${service}</span>
-                        `).join('')}
-                    </div>
-                </div>
-                <div style="margin-bottom: 2rem;">
-                    <h3>Рекомендуемые туроператоры</h3>
-                    ${place.operators.map(op => `
-                        <div class="operator-card" style="margin-top: 1rem;">
-                            <div class="operator-info">
-                                <h4>${op}</h4>
-                            </div>
-                            <div class="operator-contact">
-                                <button class="contact-btn contact-phone">
-                                    <i class="fas fa-phone"></i> Позвонить
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div style="display: flex; gap: 1rem;">
-                    <button class="btn btn-primary" onclick="bookPlace(${place.id})">
-                        <i class="fas fa-calendar-check"></i> Забронировать
-                    </button>
-                    <button class="btn btn-secondary" onclick="showOnMap(${place.coordinates[0]}, ${place.coordinates[1]})">
-                        <i class="fas fa-map"></i> Показать на карте
-                    </button>
-                </div>
-            `;
-            
-            modal.classList.add('active');
-        }
-
-        // Закрытие модального окна
-        function closeModal() {
-            document.getElementById('placeModal').classList.remove('active');
-        }
-
-        // Показать на карте
-        function showOnMap(lat, lng) {
-            closeModal();
-            map.setView([lat, lng], 12);
-            window.scrollTo({ top: document.getElementById('map').offsetTop - 100, behavior: 'smooth' });
-        }
-
-        // Фильтрация по категории
-        function filterBy(category) {
-            // Обновление активного фильтра
-            document.querySelectorAll('.filter-chip').forEach(chip => {
-                chip.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            // Фильтрация мест
-            if (category === 'all') {
-                displayPlaces(places);
-            } else {
-                const filtered = places.filter(place => place.category === category);
-                displayPlaces(filtered);
-            }
-        }
-
-        // Фильтрация по услуге
-        function filterByService(service) {
-            const filtered = places.filter(place => 
-                place.services.some(s => s.toLowerCase().includes(service.toLowerCase()))
-            );
-            displayPlaces(filtered);
-            window.scrollTo({ top: document.getElementById('placesGrid').offsetTop - 100, behavior: 'smooth' });
-        }
-
-        // Поиск мест
-        function searchPlaces() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            if (!query) {
-                displayPlaces(places);
-                return;
-            }
-
-            const filtered = places.filter(place => 
-                place.name.toLowerCase().includes(query) ||
-                place.location.toLowerCase().includes(query) ||
-                place.description.toLowerCase().includes(query) ||
-                place.services.some(s => s.toLowerCase().includes(query))
-            );
-            
-            displayPlaces(filtered);
-            
-            if (filtered.length === 0) {
-                showNotification('Ничего не найдено. Попробуйте изменить запрос', 'error');
-            } else {
-                showNotification(`Найдено мест: ${filtered.length}`, 'success');
-            }
-        }
-
-        // Показ случайного места
-        function showRandomPlace() {
-            const randomPlace = places[Math.floor(Math.random() * places.length)];
-            showPlaceDetails(randomPlace.id);
-        }
-
-        // Отображение операторов
-        function displayOperators() {
-            const list = document.getElementById('operatorsList');
-            list.innerHTML = '';
-
-            operators.forEach(operator => {
-                const card = document.createElement('div');
-                card.className = 'operator-card';
-                card.innerHTML = `
-                    <div class="operator-info">
-                        <h3>${operator.name}</h3>
-                        <div class="operator-services">
-                            ${operator.services.map(service => `
-                                <span class="operator-service-tag">${service}</span>
-                            `).join('')}
-                        </div>
-                        <div style="color: #6b7280;">
-                            <i class="fas fa-map-marker-alt"></i> ${operator.region}
-                            <span style="margin-left: 1rem;">
-                                ${generateStars(operator.rating)} ${operator.rating}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="operator-contact">
-                        <button class="contact-btn contact-phone" onclick="callOperator('${operator.phone}')">
-                            <i class="fas fa-phone"></i> ${operator.phone}
-                        </button>
-                        <button class="contact-btn contact-whatsapp" onclick="whatsappOperator('${operator.whatsapp}')">
-                            <i class="fab fa-whatsapp"></i> WhatsApp
-                        </button>
-                    </div>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        // Звонок оператору
-        function callOperator(phone) {
-            window.location.href = `tel:${phone}`;
-        }
-
-        // WhatsApp оператору
-        function whatsappOperator(phone) {
-            window.open(`https://wa.me/${phone}`, '_blank');
-        }
-
-        // Бронирование
-        function bookPlace(placeId) {
-            showNotification('Функция бронирования будет доступна в ближайшее время!', 'success');
-        }
-
-        // Показ секции
-        function showSection(section) {
-            // Обновление активного пункта меню
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            event.target.classList.add('active');
-
-            // Прокрутка к секции
-            let element;
-            switch(section) {
-                case 'map':
-                    element = document.getElementById('map');
-                    break;
-                case 'places':
-                    element = document.getElementById('placesGrid');
-                    break;
-                case 'services':
-                    element = document.querySelector('.services-section');
-                    break;
-                case 'operators':
-                    element = document.querySelector('.operators-section');
-                    break;
-                default:
-                    element = document.querySelector('.hero');
-            }
-            
-            if (element) {
-                window.scrollTo({ top: element.offsetTop - 100, behavior: 'smooth' });
-            }
-        }
-
-        // Показ уведомлений
-        function showNotification(text, type = 'success') {
-            const notification = document.getElementById('notification');
-            const notificationText = document.getElementById('notificationText');
-            
-            notificationText.textContent = text;
-            notification.className = `notification ${type} show`;
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        // Инициализация при загрузке страницы
-        document.addEventListener('DOMContentLoaded', function() {
-            initMap();
-            displayPlaces();
-            displayOperators();
-            
-            // Обработчик Enter для поиска
-            document.getElementById('searchInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    searchPlaces();
-                }
-            });
-
-            // Закрытие модального окна по клику вне его
-            document.getElementById('placeModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeModal();
-                }
-            });
-        });
-
-        // Плавная прокрутка при загрузке
-        window.addEventListener('load', function() {
-            document.body.style.opacity = '0';
-            setTimeout(() => {
-                document.body.style.transition = 'opacity 0.5s ease';
-                document.body.style.opacity = '1';
-            }, 100);
-        });
-    </script>
+if(new URLSearchParams(location.search).get('ids')) toast('Маршрут загружен по ссылке');
+</script>
 </body>
 </html>
