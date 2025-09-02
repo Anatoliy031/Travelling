@@ -1,243 +1,302 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Путешествия по России - Достопримечательности и Приключения</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <style>
-        body { font-family: Roboto, sans-serif; margin: 0; padding: 0; background: #f4f4f4; color: #333; }
-        header { background: #003366; color: white; padding: 1rem; }
-        nav { display: flex; justify-content: space-between; align-items: center; }
-        nav ul { list-style: none; display: flex; gap: 1rem; }
-        nav a { color: white; text-decoration: none; cursor: pointer; }
-        .hero { text-align: center; padding: 4rem 0; background: url('https://source.unsplash.com/random/1600x900/?russia') no-repeat center/cover; }
-        #map { height: 500px; }
-        #results, #attraction-list, #service-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; padding: 1rem; }
-        .card { background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 1rem; }
-        .card img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; }
-        .card h3 { color: #228B22; }
-        button { background: #228B22; color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; }
-        footer { text-align: center; padding: 1rem; background: #003366; color: white; }
-        .hidden { display: none; }
-
-        /* Адаптивность */
-        @media (max-width: 768px) { .hero { padding: 2rem 0; } }
-
-        /* Темный режим (добавляется через JS, если нужно) */
-        body.dark { background: #333; color: #f4f4f4; }
-        body.dark .card { background: #444; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Путешествуй по России</title>
+  <!-- Карта Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-o3GkG3ry3GGGNkY09JEMvR2sX4Mha+2xb/n60X3qtvA="
+    crossorigin=""
+  />
+  <style>
+    /* Базовые стили и переменные */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: sans-serif;
+      background: #f8f9fa;
+      color: #333;
+      line-height: 1.5;
+    }
+    :root {
+      --primary: #0d6efd;
+      --secondary: #ff7f00;
+      --light: #fff;
+      --dark: #343a40;
+    }
+    /* Шапка */
+    header {
+      background: var(--light);
+      border-bottom: 1px solid #eaeaea;
+      padding: 0.8rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo {
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .logo span { color: var(--secondary); }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1rem;
+    }
+    nav a {
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 500;
+    }
+    nav a:hover { color: var(--primary); }
+    /* Герой */
+    .hero {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: var(--light);
+      text-align: center;
+      padding: 4rem 1rem;
+    }
+    .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .hero p { margin-bottom: 1rem; }
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1rem;
+      margin: 0.3rem;
+      border-radius: 4px;
+      text-decoration: none;
+      color: var(--light);
+    }
+    .btn-primary { background: var(--primary); }
+    .btn-secondary { background: var(--secondary); }
+    /* Разделы */
+    .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
+    #map { width: 100%; height: 400px; margin-bottom: 1rem; }
+    .list-container, .services-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--light);
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 0.8rem;
+    }
+    .card h3 { color: var(--primary); margin-bottom: 0.5rem; }
+    .card p { font-size: 0.9rem; }
+    footer {
+      background: var(--dark);
+      color: var(--light);
+      padding: 2rem 1rem;
+      margin-top: 2rem;
+    }
+    footer a { color: var(--secondary); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <h1>Путешествия по России</h1>
-            <ul>
-                <li><a onclick="showSection('home')">Главная</a></li>
-                <li><a onclick="showSection('attractions')">Достопримечательности</a></li>
-                <li><a onclick="showSection('services')">Приключения</a></li>
-            </ul>
-        </nav>
-        <div class="hero">
-            <h2>Откройте чудеса России</h2>
-            <p>Интерактивный гид по достопримечательностям и приключениям. Поделитесь местоположением для персональных рекомендаций!</p>
-            <button id="get-location">Найти ближайшие места</button>
-        </div>
-    </header>
-    
-    <main id="main-home">
-        <section id="map-section">
-            <div id="map"></div>
-        </section>
-        
-        <section id="search-filter">
-            <input type="text" id="search" placeholder="Поиск по названию или региону...">
-            <select id="filter">
-                <option value="">Все категории</option>
-                <option value="landmark">Памятники</option>
-                <option value="museum">Музеи</option>
-                <option value="nature">Природа</option>
-            </select>
-            <div id="results"></div>
-        </section>
-    </main>
-    
-    <main id="main-attractions" class="hidden">
-        <h2>Все достопримечательности</h2>
-        <div id="attraction-list"></div>
-    </main>
-    
-    <main id="main-services" class="hidden">
-        <h2>Приключенческие услуги</h2>
-        <p>Найдите контакты для джиппинга, байдарок, рафтинга, походов, велотуров, парапланеризма и др. Бронируйте напрямую у операторов.</p>
-        <select id="activity-filter">
-            <option value="">Все активности</option>
-            <option value="jeep">Джиппинг</option>
-            <option value="kayaking">Байдарки/Рафтинг</option>
-            <option value="hiking">Походы/Велотуры</option>
-            <option value="paragliding">Парапланеризм/Прочее</option>
-        </select>
-        <div id="service-list"></div>
-    </main>
-    
-    <footer>
-        <p>&copy; 2025 Путешествия по России. Данные из открытых источников. Для партнерства: contact@travelrussia.ru</p>
-    </footer>
-    
-    <script>
-        const attractions = [
-            { name: 'Красная площадь', lat: 55.7539, lng: 37.6208, description: 'Историческая площадь в Москве.', region: 'Москва', category: 'landmark', image: 'https://source.unsplash.com/random/300x200/?moscow' },
-            { name: 'Государственный Эрмитаж', lat: 59.9398, lng: 30.3146, description: 'Всемирно известный музей искусств в Санкт-Петербурге.', region: 'Санкт-Петербург', category: 'museum', image: 'https://source.unsplash.com/random/300x200/?hermitage' },
-            { name: 'Озеро Байкал', lat: 53.5587, lng: 108.1650, description: 'Самое глубокое озеро в мире, объект ЮНЕСКО.', region: 'Сибирь', category: 'nature', image: 'https://source.unsplash.com/random/300x200/?baikal' },
-            // Добавьте больше: ~100 записей, например, Кремль (55.7520, 37.6175), Петергоф (59.8850, 29.9086), Алтайские горы (50.6167, 86.3167) и т.д.
-            // Пример полного списка: Из Википедии — Москва: Собор Василия Блаженного (55.7525, 37.6231); СПб: Храм Спаса на Крови (59.9401, 30.3289); и т.д.
-        ];
 
-        const services = [
-            { name: 'Russia Discovery', activity: 'jeep', phone: '+7 495 800-8-800', email: 'info@russiadiscovery.com', website: 'https://www.russiadiscovery.com' },
-            { name: 'Big Country Travel', activity: 'kayaking', phone: 'N/A', email: 'info@bigcountry.travel', website: 'https://bigcountry.travel' },
-            { name: 'Adventure Guide', activity: 'hiking', phone: '+7 902 925-11-02', email: 'info@adventure-guide.ru', website: 'https://adventure-guide.ru' },
-            { name: 'RaftSiberia', activity: 'rafting', phone: '(541) 386-2271', email: 'info@raftsiberia.com', website: 'https://www.raftsiberia.com' },
-            { name: 'Elbrus Elevation', activity: 'paragliding', phone: 'N/A', email: 'info@elbrus-elevation.com', website: 'https://www.tripadvisor.com/Attraction_Review-g298533-d13927472' },
-            // Добавьте больше: Из поиска — Sayan Ring (+7 (391) 2-220-900), Kola Travel (рафтинг) и т.д. Группируйте по активности.
-        ];
-    </script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initMap();
-            listAttractions();
-            listServices();
+  <header>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="logo">Путешествуй<span>.RU</span></div>
+      <nav>
+        <ul>
+          <li><a href="#map">Карта</a></li>
+          <li><a href="#list">Достопримечательности</a></li>
+          <li><a href="#services">Сервисы</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-            const search = document.getElementById('search');
-            if (search) search.addEventListener('input', filterResults);
-            
-            const filter = document.getElementById('filter');
-            if (filter) filter.addEventListener('change', filterResults);
-            
-            const activityFilter = document.getElementById('activity-filter');
-            if (activityFilter) activityFilter.addEventListener('change', filterServices);
-            
-            const getLocBtn = document.getElementById('get-location');
-            if (getLocBtn) getLocBtn.addEventListener('click', getUserLocation);
-            
-            showSection('home'); // Показать главную по умолчанию
-        });
+  <section class="hero">
+    <h1>Открой Россию</h1>
+    <p>Лучшие места и приключения для путешественников</p>
+    <a href="#map" class="btn btn-primary">К карте</a>
+    <a href="#services" class="btn btn-secondary">Туры и приключения</a>
+  </section>
 
-        function showSection(section) {
-            document.getElementById('main-home').classList.add('hidden');
-            document.getElementById('main-attractions').classList.add('hidden');
-            document.getElementById('main-services').classList.add('hidden');
-            
-            if (section === 'home') {
-                document.getElementById('main-home').classList.remove('hidden');
-            } else if (section === 'attractions') {
-                document.getElementById('main-attractions').classList.remove('hidden');
-            } else if (section === 'services') {
-                document.getElementById('main-services').classList.remove('hidden');
-            }
-        }
+  <!-- Поиск -->
+  <div class="container">
+    <form id="search-form" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <input id="search-input" type="text" placeholder="Введите город (например, Москва)" style="flex:1;padding:0.5rem;border:1px solid #ccc;border-radius:4px;">
+      <button type="submit" class="btn btn-primary">Искать</button>
+      <button type="button" id="geo-btn" class="btn btn-secondary">Моё местоположение</button>
+    </form>
+    <p style="font-size:0.8rem;color:#666;margin-top:0.5rem;">Можно выбрать поиск по городу или определить своё местоположение.</p>
+  </div>
 
-        function initMap() {
-            const map = L.map('map').setView([55.7558, 37.6173], 4); // Центр России
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            
-            attractions.forEach(attr => {
-                L.marker([attr.lat, attr.lng]).addTo(map)
-                    .bindPopup(`<h3>${attr.name}</h3><p>${attr.description}</p><img src="${attr.image}" alt="${attr.name}" width="100">`);
-            });
-        }
+  <!-- Карта -->
+  <div id="map"></div>
 
-        function listAttractions() {
-            const list = document.getElementById('attraction-list');
-            attractions.forEach(attr => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `<img src="${attr.image}" alt="${attr.name}">
-                                  <h3>${attr.name}</h3>
-                                  <p>${attr.description}</p>
-                                  <p>Регион: ${attr.region}</p>`;
-                list.appendChild(card);
-            });
-        }
+  <!-- Список достопримечательностей -->
+  <div class="container">
+    <h2 id="list">Список достопримечательностей</h2>
+    <div id="list-container" class="list-container"></div>
+  </div>
 
-        function listServices() {
-            const list = document.getElementById('service-list');
-            services.forEach(svc => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `<h3>${svc.name}</h3>
-                                  <p>Активность: ${svc.activity}</p>
-                                  <p>Контакты: ${svc.phone} | ${svc.email}</p>
-                                  <a href="${svc.website}" target="_blank">Сайт</a>
-                                  <button>Забронировать</button>`;
-                list.appendChild(card);
-            });
-        }
+  <!-- Сервисы -->
+  <div class="container">
+    <h2 id="services">Активные приключения и туры</h2>
+    <div id="services-container" class="services-container"></div>
+  </div>
 
-        function filterResults() {
-            const query = document.getElementById('search').value.toLowerCase();
-            const cat = document.getElementById('filter').value;
-            const results = document.getElementById('results');
-            results.innerHTML = '';
-            attractions.filter(attr => 
-                (attr.name.toLowerCase().includes(query) || attr.region.toLowerCase().includes(query)) &&
-                (!cat || attr.category === cat)
-            ).forEach(attr => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `<h3>${attr.name}</h3><p>${attr.description}</p>`;
-                results.appendChild(card);
-            });
-        }
+  <!-- Подвал -->
+  <footer>
+    <div style="display:flex;flex-wrap:wrap;gap:2rem;">
+      <div style="flex:1;">
+        <h3>О проекте</h3>
+        <p>Сайт создан для того, чтобы вы могли открыть для себя удивительные места России и узнать, где заказать активные туры.</p>
+      </div>
+      <div>
+        <h3>Контакты</h3>
+        <p>Пишите предложения на <a href="mailto:info@puteshestvuy.ru">info@puteshestvuy.ru</a></p>
+      </div>
+    </div>
+    <p style="margin-top:1rem;font-size:0.8rem;">© 2025 Путешествуй.РУ</p>
+  </footer>
 
-        function filterServices() {
-            const cat = document.getElementById('activity-filter').value;
-            const list = document.getElementById('service-list');
-            list.innerHTML = '';
-            services.filter(svc => !cat || svc.activity === cat).forEach(svc => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `<h3>${svc.name}</h3><p>Активность: ${svc.activity}</p><p>Контакты: ${svc.phone} | ${svc.email}</p><a href="${svc.website}">Сайт</a><button>Забронировать</button>`;
-                list.appendChild(card);
-            });
-        }
+  <!-- Библиотека карты -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-o//DsQoZdFWG1DR+jVB/YQLQYmkOZhlmkoN1Vj+2a54="
+    crossorigin=""
+  ></script>
+  <script>
+    // Статический список достопримечательностей
+    const attractions = [
+      { name: 'Красная площадь', city: 'Москва', lat: 55.7539, lon: 37.6208, desc: 'Исторический центр Москвы и сердца России.' },
+      { name: 'Эрмитаж', city: 'Санкт-Петербург', lat: 59.9398, lon: 30.3146, desc: 'Один из крупнейших музеев искусства и культуры.' },
+      { name: 'Остров Кижи', city: 'Карелия', lat: 62.0613, lon: 35.2338, desc: 'Музей под открытым небом с деревянными храмами.' },
+      { name: 'Озеро Байкал', city: 'Иркутск', lat: 53.5587, lon: 108.1650, desc: 'Самое глубокое озеро на планете, «жемчужина Сибири».' },
+      { name: 'Эльбрус', city: 'Кавказ', lat: 43.3499, lon: 42.4453, desc: 'Высочайшая гора Европы и популярный альпинистский объект.' },
+      { name: 'Куршская коса', city: 'Калининград', lat: 55.2423, lon: 20.9106, desc: 'Уникальный национальный парк на Балтике.' },
+      { name: 'Камчатские вулканы', city: 'Камчатка', lat: 53.1365, lon: 158.3711, desc: 'Грандиозный вулканический пейзаж полуострова.' },
+      { name: 'Петродворец (Петергоф)', city: 'Санкт-Петербург', lat: 59.8800, lon: 29.8870, desc: 'Императорский дворец и знаменитые фонтаны.' },
+      { name: 'Казанский кремль', city: 'Казань', lat: 55.7961, lon: 49.1082, desc: 'Историческая крепость и символ Татарстана.' },
+      { name: 'Алтайские горы', city: 'Алтай', lat: 50.0073, lon: 86.9921, desc: 'Живописные горы, озёра и реки Горного Алтая.' }
+    ];
 
-        function getUserLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    const userLat = pos.coords.latitude;
-                    const userLng = pos.coords.longitude;
-                    const results = document.getElementById('results');
-                    results.innerHTML = '<h3>Ближайшие достопримечательности</h3>';
-                    
-                    attractions.sort((a, b) => 
-                        haversine(userLat, userLng, a.lat, a.lng) - haversine(userLat, userLng, b.lat, b.lng)
-                    ).slice(0, 10).forEach(attr => {
-                        const dist = haversine(userLat, userLng, attr.lat, attr.lng).toFixed(2);
-                        const card = document.createElement('div');
-                        card.className = 'card';
-                        card.innerHTML = `<h3>${attr.name}</h3><p>${attr.description}</p><p>Расстояние: ${dist} км</p>`;
-                        results.appendChild(card);
-                    });
-                    
-                    // Аналогично для услуг, если нужно
-                }, () => alert('Доступ к геолокации запрещен.'));
-            } else {
-                alert('Геолокация не поддерживается.');
-            }
-        }
+    // Данные туроператоров
+    const services = [
+      { name:'RussiaDiscovery', desc:'Экспедиции и джип-туры по России.', phone:'+7 495 323-98-45', email:null, web:'https://www.russiadiscovery.ru' },
+      { name:'Trophy‑Life', desc:'Джип-туры по Подмосковью и подарочные сертификаты.', phone:'+7 495 649-65-79', email:'info@trophy-life.ru', web:'https://trophy-life.ru' },
+      { name:'М‑драйв Джип тур', desc:'Авторские джип-туры по Крыму.', phone:'+7 978 007-81-11', email:null, web:'https://xn----8sbgg0ao4a.xn--p1ai' },
+      { name:'Турклуб ПИК', desc:'Байдарочные походы, восхождения и автотуры.', phone:'8 800 200-2456', email:null, web:'https://turclub-pik.ru' },
+      { name:'Ахтилахти', desc:'Туры на байдарках, каяках и SUP вокруг Санкт-Петербурга и по России.', phone:'+7 911 701-71-51', email:'go@ahtilahti.ru', web:'https://ahtilahti.ru' },
+      { name:'Adventure Guide', desc:'Сплавы на байдарках, рафтинг и другие приключения.', phone:'+7 495 197-89-23, 8 800 201-31-58, +7 953 534-25-92', email:null, web:'https://adventure-guide.ru' }
+    ];
 
-        function haversine(lat1, lon1, lat2, lon2) {
-            const R = 6371; // Радиус Земли в км
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-    </script>
+    let map, markers;
+
+    // Инициализация карты
+    function initMap() {
+      map = L.map('map').setView([58.5, 50], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      markers = L.layerGroup().addTo(map);
+      displayAttractions(attractions); // показываем все по умолчанию
+    }
+
+    // Добавление маркеров и списка
+    function displayAttractions(list) {
+      markers.clearLayers();
+      document.getElementById('list-container').innerHTML = '';
+      list.forEach(item => {
+        const marker = L.marker([item.lat, item.lon]).addTo(markers);
+        marker.bindPopup('<strong>' + item.name + '</strong><br>' + item.desc);
+        // Карточка в списке
+        const card = document.createElement('div');
+        card.className = 'card';
+        const title = document.createElement('h3');
+        title.textContent = item.name;
+        const text = document.createElement('p');
+        text.textContent = item.desc;
+        card.appendChild(title);
+        card.appendChild(text);
+        document.getElementById('list-container').appendChild(card);
+      });
+    }
+
+    // Поиск по городу
+    document.getElementById('search-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const query = document.getElementById('search-input').value.trim().toLowerCase();
+      if (!query) { displayAttractions(attractions); return; }
+      const filtered = attractions.filter(a => a.city.toLowerCase().includes(query));
+      if (filtered.length) {
+        // центрируем карту на первом совпадении
+        map.setView([filtered[0].lat, filtered[0].lon], 6);
+        displayAttractions(filtered);
+      } else {
+        alert('Ничего не найдено, показываем все места.');
+        displayAttractions(attractions);
+      }
+    });
+
+    // Геолокация
+    document.getElementById('geo-btn').addEventListener('click', function() {
+      if (!navigator.geolocation) {
+        alert('Ваш браузер не поддерживает геолокацию');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(function(pos) {
+        const { latitude, longitude } = pos.coords;
+        map.setView([latitude, longitude], 5);
+        // ищем ближайшие достопримечательности (до 300 км)
+        const near = attractions
+          .map(a => {
+            return { ...a, dist: distance(latitude, longitude, a.lat, a.lon) };
+          })
+          .filter(a => a.dist <= 300)
+          .sort((a,b) => a.dist - b.dist);
+        displayAttractions(near.length ? near : attractions);
+      }, function() {
+        alert('Не удалось определить местоположение');
+      });
+    });
+
+    // Haversine: расстояние между двумя координатами (км)
+    function distance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = toRad(lat2-lat1);
+      const dLon = toRad(lon2-lon1);
+      const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+    function toRad(deg) { return deg * Math.PI/180; }
+
+    // Вывод сервисов
+    function displayServices() {
+      const container = document.getElementById('services-container');
+      services.forEach(s => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const h = document.createElement('h3');
+        h.textContent = s.name;
+        const p = document.createElement('p');
+        p.textContent = s.desc;
+        const contact = document.createElement('p');
+        contact.innerHTML = 'Тел.: ' + s.phone + (s.email ? '<br>e-mail: <a href="mailto:' + s.email + '">' + s.email + '</a>' : '') + '<br><a href="' + s.web + '" target="_blank">Сайт</a>';
+        card.appendChild(h);
+        card.appendChild(p);
+        card.appendChild(contact);
+        container.appendChild(card);
+      });
+    }
+
+    // Старт
+    window.addEventListener('DOMContentLoaded', function() {
+      initMap();
+      displayServices();
+    });
+  </script>
 </body>
 </html>
