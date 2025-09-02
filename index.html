@@ -2,158 +2,215 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1, viewport-fit=cover">
-<title>Достопримечательности Краснодарского края — Твой интерактивный путеводитель</title>
-<meta name="description" content="Интерактивный гид по Краснодарскому краю: карта, что рядом, лучшие места, маршруты, винодегустации, море и горы.">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<title>Край Гид — достопримечательности Краснодарского края</title>
+<meta name="description" content="Интерактивный мобильный гид: что рядом, карта, фильтры, избранное и маршруты по Краснодарскому краю.">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
 <style>
+/* ======= Токены (mobile-first, тёмная тема с авто-светлой) ======= */
 :root{
-  --bg:#0b0f14;--card:#111823;--ink:#e6edf5;--muted:#9fb0c3;--accent:#00B4F0;--accent-2:#4AC7F3;
-  --ok:#27ae60;--warn:#f39c12;--bad:#e74c3c;--border:#223044;--chip:#172233;--chip-on:#0f5e7b;
-  --shadow: 0 10px 30px rgba(0,0,0,.35);
+  --bg:#0b0f14;--card:#111823;--ink:#e6edf5;--muted:#a9b6c6;
+  --accent:#00B4F0;--accent2:#4AC7F3;
+  --ok:#27ae60;--warn:#f39c12;--bad:#e74c3c;
+  --border:#213043;--chip:#162335;--chip-on:#0f5e7b;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --safe-b: env(safe-area-inset-bottom, 0px);
 }
 @media (prefers-color-scheme: light){
-  :root{--bg:#f5f7fb;--card:#ffffff;--ink:#0b1a2b;--muted:#5f6b7a;--accent:#0077ff;--accent-2:#5bb8ff;--border:#e4eaf3;--chip:#eef3fb;--chip-on:#d9ecff;--shadow:0 12px 30px rgba(16,42,67,.08)}
+  :root{
+    --bg:#f6f8fc;--card:#ffffff;--ink:#0b1a2b;--muted:#546278;
+    --accent:#0077ff;--accent2:#5bb8ff;--border:#e6ecf5;--chip:#eef3fb;--chip-on:#d9ecff;
+    --shadow:0 12px 30px rgba(16,42,67,.08);
+  }
 }
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:var(--bg);color:var(--ink);line-height:1.4}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  -webkit-tap-highlight-color:transparent;
+}
 a{color:var(--accent);text-decoration:none}
+
+/* ======= Навбар ======= */
 header{
-  position:sticky;top:0;z-index:50;background:linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,0));
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0));
   backdrop-filter:saturate(140%) blur(10px);
 }
-.nav{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 16px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.2px}
-.brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow)}
+.nav{display:flex;align-items:center;gap:10px;padding:12px 14px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:.2px}
+.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow)}
 .badge{background:var(--chip);border:1px solid var(--border);padding:6px 10px;border-radius:999px;color:var(--muted);font-size:12px}
-.main{max-width:1200px;margin:0 auto;padding:10px 16px 120px}
-.hero{
-  background:radial-gradient(1200px 400px at 50% -200px, rgba(0,180,240,.25), transparent), linear-gradient(180deg, rgba(0,0,0,.10), transparent);
-  border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow);display:grid;gap:14px
+.nav .spacer{flex:1}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--border);background:var(--chip);
+  padding:11px 14px;border-radius:12px;color:var(--ink);cursor:pointer;
+  min-height:44px; /* удобный тап */
 }
-.hero h1{font-size:26px;line-height:1.15;margin:0}
-.hero p{margin:0;color:var(--muted)}
-.controls{display:grid;gap:10px}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#00131b;border:none}
+.btn.ghost{background:var(--card)}
+
+/* ======= Хиро/поиск (мобайл) ======= */
+.main{padding:12px 14px 120px;max-width:1200px;margin:0 auto}
+.hero{
+  display:grid;gap:12px;background:linear-gradient(180deg, rgba(0,180,240,.10), transparent);
+  border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow)
+}
+.hero h1{margin:0;font-size:clamp(18px,4.6vw,26px);line-height:1.2}
+.hero p{margin:0;color:var(--muted);font-size:14px}
+
 .searchbar{display:flex;gap:8px;flex-wrap:wrap}
 .searchbar input{
-  flex:1;min-width:180px;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--card);color:var(--ink)
+  flex:1;min-width:0;width:100%;
+  padding:12px 14px;border-radius:12px;border:1px solid var(--border);
+  background:var(--card);color:var(--ink);font-size:16px
 }
-.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:var(--chip);padding:10px 14px;border-radius:12px;color:var(--ink);cursor:pointer}
-.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#00131b;border:none}
-.btn.ghost{background:var(--card)}
-.chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:8px 12px;border-radius:999px;background:var(--chip);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-weight:600}
+
+/* Горизонтальные чипсы с прокруткой */
+.chips{display:flex;gap:8px;overflow:auto;padding-bottom:2px;scroll-snap-type:x mandatory}
+.chip{
+  flex:0 0 auto;scroll-snap-align:start;
+  padding:10px 12px;border-radius:999px;background:var(--chip);
+  border:1px solid var(--border);color:var(--muted);cursor:pointer;font-weight:700;font-size:13px
+}
 .chip.active{background:var(--chip-on);color:#fff;border-color:transparent}
-.layout{display:grid;grid-template-columns: 1.1fr .9fr;gap:16px;margin-top:14px}
-@media(max-width:980px){.layout{grid-template-columns:1fr}.mapwrap{order:-1}}
+
+/* ======= Лэйаут (мобайл: один столбец) ======= */
+.layout{display:grid;gap:12px;margin-top:12px}
 .panel{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
-.panel header{position:unset;background:transparent;backdrop-filter:none}
-.panel .head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border)}
+.head{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border);font-weight:700}
+.meta-small{color:var(--muted);font-size:12px}
+
 .list{display:grid;gap:10px;padding:10px}
-.card{
-  display:grid;grid-template-columns:120px 1fr;gap:12px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--card)
-}
-@media(max-width:560px){.card{grid-template-columns:1fr}}
-.card img{width:100%;height:100%;max-height:160px;object-fit:cover}
-.card-body{padding:10px 10px 12px}
-.card h3{margin:0 0 6px 0;font-size:16px}
-.meta{display:flex;flex-wrap:wrap;gap:8px;color:var(--muted);font-size:12px}
+
+/* Карточка — одна колонка на мобиле */
+.card{display:grid;gap:10px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--card)}
+.card img{width:100%;height:220px;object-fit:cover;display:block}
+.card-body{padding:10px 12px}
+.card h3{margin:0 0 6px;font-size:16px}
+.meta{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:13px}
 .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .tag{background:var(--chip);color:var(--muted);border:1px solid var(--border);padding:4px 8px;border-radius:999px;font-size:12px}
-.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.kpi{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:8px}
+.kpi{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-top:6px}
 .kpi b{color:var(--ink)}
-.mapwrap{position:sticky;top:76px;height:calc(100vh - 100px);min-height:420px}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+/* Карта — 65vh на мобиле (удобно скроллить), скругление */
+.mapwrap{height:65vh;min-height:360px}
 #map{width:100%;height:100%;border-radius:16px;border:1px solid var(--border);overflow:hidden}
+
+/* ======= Панель маршрута (липкая снизу + safe-area) ======= */
 .footerbar{
-  position:fixed;left:0;right:0;bottom:0;background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.6));
-  padding:12px;z-index:60
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  padding:10px 10px calc(10px + var(--safe-b));
+  background:linear-gradient(180deg, rgba(0,0,0,0), rgba(0,0,0,.65));
 }
 .route{
-  max-width:1200px;margin:0 auto;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;box-shadow:var(--shadow);
-  display:grid;gap:10px
+  background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px;
+  box-shadow:var(--shadow);display:grid;gap:10px
 }
 .route .title{display:flex;align-items:center;gap:10px}
-.stops{display:flex;overflow:auto;gap:8px;padding-bottom:4px}
-.stop{min-width:180px;border:1px dashed var(--border);padding:8px;border-radius:10px;display:grid;gap:6px;background:var(--chip)}
+.stops{display:flex;overflow:auto;gap:8px;padding-bottom:2px}
+.stop{min-width:70%;border:1px dashed var(--border);padding:8px;border-radius:10px;display:grid;gap:6px;background:var(--chip)}
 .stop .row{display:flex;justify-content:space-between;gap:8px;align-items:center}
 .stop .small{font-size:12px;color:var(--muted)}
-.stop .del{border:none;background:transparent;color:var(--bad);cursor:pointer}
+.stop .del{border:none;background:transparent;color:var(--bad);cursor:pointer;font-size:18px;line-height:1}
 .route .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-label.slider{display:flex;align-items:center;gap:8px;color:var(--muted)}
+
+label.slider{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:14px}
 label.slider input{accent-color:var(--accent)}
+
 .toast{
-  position:fixed;inset:auto 16px 86px auto;background:var(--card);border:1px solid var(--border);padding:10px 12px;border-radius:10px;
-  box-shadow:var(--shadow);color:var(--ink);font-size:13px;z-index:70;display:none
+  position:fixed;inset:auto 12px calc(88px + var(--safe-b)) 12px auto;
+  background:var(--card);border:1px solid var(--border);padding:10px 12px;border-radius:10px;
+  box-shadow:var(--shadow);color:var(--ink);font-size:13px;z-index:60;display:none
 }
-.empty{padding:24px;color:var(--muted)}
-hr.sep{border:none;border-top:1px dashed var(--border);margin:8px 0}
+.empty{padding:20px;color:var(--muted);text-align:center}
+
+/* ======= Десктопные апгрейды ======= */
+@media (min-width: 960px){
+  .layout{grid-template-columns: 1.05fr .95fr}
+  .mapwrap{position:sticky;top:86px;height:calc(100vh - 120px);min-height:540px}
+  .card{grid-template-columns: 120px 1fr}
+  .card img{height:100%;min-height:120px}
+  .stop{min-width:260px}
+}
+
+/* Аксессибилити и экономия батареи */
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
 </style>
 </head>
 <body>
 <header>
   <div class="nav">
     <div class="brand"><div class="logo"></div><div>Край Гид</div><span class="badge">Краснодарский край</span></div>
-    <div style="flex:1"></div>
-    <button class="btn ghost" id="btn-share" title="Поделиться подборкой">Поделиться</button>
-    <button class="btn ghost" id="btn-favs" title="Избранное">Избранное <span id="fav-count" class="badge" style="margin-left:6px">0</span></button>
+    <div class="spacer"></div>
+    <button class="btn ghost" id="btn-share" aria-label="Поделиться">Поделиться</button>
+    <button class="btn ghost" id="btn-favs" aria-label="Избранное">★ <span id="fav-count" class="badge" style="margin-left:6px">0</span></button>
   </div>
 </header>
 
 <main class="main">
   <section class="hero">
     <div>
-      <h1>Лучшие места Краснодарского края: море, горы, вино и адреналин</h1>
-      <p>Найди, что рядом, собери маршрут в один тап и поезжай. Всё — на одной карте.</p>
+      <h1>Лучшие места края — в твоём телефоне</h1>
+      <p>Найди, что рядом, добавь в маршрут и поезжай. Всё — на одной карте.</p>
     </div>
-    <div class="controls">
-      <div class="searchbar">
-        <input id="q" type="search" placeholder="Поиск: «Сафари-парк», «Роза Хутор», «вино», «водопады», «семья»…">
-        <button class="btn" id="btn-locate">📍 Рядом со мной</button>
-        <button class="btn primary" id="btn-reset">Сбросить фильтры</button>
-      </div>
-      <div class="chips" id="chips"></div>
-      <div class="searchbar">
-        <label class="slider">Радиус (км от меня): <b id="rad-val">100</b>
-          <input id="radius" type="range" min="5" max="400" step="5" value="100">
-        </label>
-        <label class="slider">Сортировка:
-          <select id="sort">
-            <option value="distance">По расстоянию</option>
-            <option value="rating">По рейтингу</option>
-            <option value="popularity">По популярности</option>
-            <option value="name">По названию</option>
-          </select>
-        </label>
-      </div>
+    <div class="searchbar">
+      <input id="q" type="search" inputmode="search" placeholder="Поиск: «Роза Хутор», «водопады», «вино», «семья»…"
+             autocomplete="off" enterkeyhint="search" />
+      <button class="btn" id="btn-locate">📍 Рядом</button>
+      <button class="btn primary" id="btn-reset">Сброс</button>
+    </div>
+
+    <!-- Чипсы категорий прокручиваются горизонтально -->
+    <div class="chips" id="chips"></div>
+
+    <!-- Компактные селекторы -->
+    <div class="searchbar">
+      <label class="slider" style="flex:1">Радиус (км): <b id="rad-val">100</b>
+        <input id="radius" type="range" min="5" max="400" step="5" value="100" style="width:100%">
+      </label>
+      <label class="slider">Сортировка:
+        <select id="sort" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--ink)">
+          <option value="distance">По расстоянию</option>
+          <option value="rating">По рейтингу</option>
+          <option value="popularity">По популярности</option>
+          <option value="name">По названию</option>
+        </select>
+      </label>
     </div>
   </section>
 
   <section class="layout">
     <div class="panel">
       <div class="head">
-        <div style="font-weight:700">Каталог мест</div>
-        <div style="display:flex;gap:8px;align-items:center;color:var(--muted)">
-          <span id="count">0</span> мест · <span id="near">нет геопозиции</span>
-        </div>
+        <div>Каталог мест</div>
+        <div class="meta-small"><span id="count">0</span> мест · <span id="near">геопозиция не определена</span></div>
       </div>
       <div class="list" id="list"></div>
     </div>
-    <div class="mapwrap panel">
+
+    <div class="panel mapwrap" aria-label="Карта">
       <div id="map"></div>
     </div>
   </section>
 </main>
 
+<!-- Липкая снизу панель маршрута -->
 <div class="footerbar">
-  <div class="route">
+  <div class="route" role="region" aria-label="Маршрут">
     <div class="title"><b>Маршрут</b> <span id="route-stats" class="badge">пусто</span></div>
     <div class="stops" id="stops"></div>
     <div class="row">
-      <button class="btn" id="btn-opt">Оптимизировать порядок</button>
+      <button class="btn" id="btn-opt">Оптимизировать</button>
       <button class="btn" id="btn-clear">Очистить</button>
       <div style="flex:1"></div>
       <button class="btn" id="btn-ymaps">Открыть в Яндекс.Картах</button>
@@ -162,11 +219,11 @@ hr.sep{border:none;border-top:1px dashed var(--border);margin:8px 0}
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous"></script>
 <script>
-/* ------------ ДАННЫЕ ------------- */
+/* -------- ДАННЫЕ -------- */
 const CATEGORIES = [
   {id:'sea', label:'Море/пляжи'}, {id:'mountain', label:'Горы/видовые'},
   {id:'nature', label:'Природа/водопады'}, {id:'adventure', label:'Экстрим/парки'},
@@ -177,408 +234,47 @@ const CATEGORIES = [
 const ATTRACTIONS = [
   {id:1,name:'Парк «Краснодар»',city:'Краснодар',lat:45.0445,lon:39.0137,
    cats:['city','family','culture'], rating:4.9,pop:99, price:'бесплатно',
-   img:'https://images.unsplash.com/photo-1564410267848-db70534a26a4?auto=format&fit=crop&w=1200&q=60',
-   desc:'Икона современного паркового дизайна: амфитеатры, фонтаны, медиа-экран, дендросад.',
-   partner:null},
+   img:'https://images.unsplash.com/photo-1564410267848-db70534a26a4?auto=format&fit=crop&w=1400&q=60',
+   desc:'Икона современного паркового дизайна: амфитеатры, фонтаны, медиа-экран, дендросад.', partner:null},
   {id:2,name:'Абрау-Дюрсо и озеро Абрау',city:'Новороссийск',lat:44.7039,lon:37.5828,
    cats:['wine','nature','family'], rating:4.8,pop:95, price:'билеты/дегустации',
-   img:'https://images.unsplash.com/photo-1532635210-d02b640c32df?auto=format&fit=crop&w=1200&q=60',
+   img:'https://images.unsplash.com/photo-1532635210-d02b640c32df?auto=format&fit=crop&w=1400&q=60',
    desc:'Центр русского шампанского, прогулки по озеру, гастрономия и винные туры.',
    partner:{label:'Винный тур', url:'https://yandex.ru/maps/?text=%D0%90%D0%B1%D1%80%D0%B0%D1%83%20%D0%B4%D1%8E%D1%80%D1%81%D0%BE'}},
   {id:3,name:'Заповедник Большой Утриш',city:'Анапа',lat:44.8278,lon:37.4392,
    cats:['sea','nature'], rating:4.7,pop:88, price:'входной',
-   img:'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1200&q=60',
-   desc:'Лагуны, можжевеловые рощи и бирюзовые бухты. Снорклинг и треккинг.',
-   partner:null},
+   img:'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1400&q=60',
+   desc:'Лагуны, можжевеловые рощи и бирюзовые бухты. Снорклинг и треккинг.', partner:null},
   {id:4,name:'Озеро Сукко (кипарисы в воде)',city:'Анапа',lat:44.7762,lon:37.4844,
    cats:['nature','family'], rating:4.7,pop:91, price:'бесплатно',
-   img:'https://images.unsplash.com/photo-1520086846052-d4c83634ed71?auto=format&fit=crop&w=1200&q=60',
-   desc:'Знаменитые затопленные кипарисы. Лучшие кадры — осенью.',
-   partner:null},
+   img:'https://images.unsplash.com/photo-1520086846052-d4c83634ed71?auto=format&fit=crop&w=1400&q=60',
+   desc:'Знаменитые затопленные кипарисы. Лучшие кадры — осенью.', partner:null},
   {id:5,name:'Сафари-парк Геленджик',city:'Геленджик',lat:44.5659,lon:38.1098,
    cats:['family','adventure'], rating:4.6,pop:92, price:'билеты',
-   img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=60',
+   img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=60',
    desc:'Канатная дорога, панорамы бухты, реабилитация животных.',
    partner:{label:'Купить билет',url:'https://yandex.ru/maps/?text=%D0%A1%D0%B0%D1%84%D0%B0%D1%80%D0%B8%20%D0%BF%D0%B0%D1%80%D0%BA%20%D0%93%D0%B5%D0%BB%D0%B5%D0%BD%D0%B4%D0%B6%D0%B8%D0%BA'}},
   {id:6,name:'Скала Парус',city:'Прасковеевка',lat:44.4985,lon:37.9883,
    cats:['sea','nature'], rating:4.6,pop:83, price:'бесплатно',
-   img:'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=60',
-   desc:'Визитка побережья: узкая каменная арка у самой кромки моря.',
-   partner:null},
+   img:'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1400&q=60',
+   desc:'Визитка побережья: узкая каменная арка у самой кромки моря.', partner:null},
   {id:7,name:'Старый парк',city:'Кабардинка',lat:44.6497,lon:37.9348,
    cats:['culture','family'], rating:4.7,pop:80, price:'билеты',
-   img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=60',
-   desc:'Авторский этнопарк: античность, средневековье, Восток — на компактной территории.',
-   partner:null},
+   img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1400&q=60',
+   desc:'Авторский этнопарк: античность, средневековье, Восток — на компактной территории.', partner:null},
   {id:8,name:'Долина лотосов (Ахтанизовский лиман)',city:'Темрюк',lat:45.2722,lon:37.1530,
    cats:['nature','sea'], rating:4.6,pop:77, price:'прогулка/катер',
-   img:'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=60',
-   desc:'Лотосы цветут в июле–августе. Водные прогулки по каналам лимана.',
-   partner:null},
+   img:'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=60',
+   desc:'Лотосы цветут в июле–августе. Водные прогулки по каналам лимана.', partner:null},
   {id:9,name:'Грязевой вулкан Тиздар',city:'Темрюк',lat:45.2389,lon:36.9881,
    cats:['adventure','nature'], rating:4.5,pop:75, price:'билеты',
-   img:'https://images.unsplash.com/photo-1499696010180-025efef15781?auto=format&fit=crop&w=1200&q=60',
-   desc:'Уникальные грязевые ванны с видом на Тамань и море.',
-   partner:null},
+   img:'https://images.unsplash.com/photo-1499696010180-025efef15781?auto=format&fit=crop&w=1400&q=60',
+   desc:'Уникальные грязевые ванны с видом на Тамань и море.', partner:null},
   {id:10,name:'Долина Лефкадия (винодельня)',city:'Крымск',lat:44.8744,lon:38.4187,
    cats:['wine','nature','family'], rating:4.8,pop:82, price:'дегустации',
-   img:'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?auto=format&fit=crop&w=1200&q=60',
+   img:'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?auto=format&fit=crop&w=1400&q=60',
    desc:'Сады, энотуризм, музей вина. Отличный уикенд для гурманов.',
    partner:{label:'Тур/дегустация',url:'https://yandex.ru/maps/?text=%D0%9B%D0%B5%D1%84%D0%BA%D0%B0%D0%B4%D0%B8%D1%8F'}},
   {id:11,name:'Горный курорт «Роза Хутор»',city:'Сочи (Красная Поляна)',lat:43.67,lon:40.2065,
    cats:['mountain','adventure','family'], rating:4.8,pop:98, price:'подъёмники/пасс',
-   img:'https://images.unsplash.com/photo-1541844053589-346841d0d3a8?auto=format&fit=crop&w=1200&q=60',
-   desc:'Канатки, видовые тропы, маршруты на весь год. Сердце Поляны.',
-   partner:{label:'Ски-пассы/летние билеты',url:'https://yandex.ru/maps/?text=%D0%A0%D0%BE%D0%B7%D0%B0%20%D0%A5%D1%83%D1%82%D0%BE%D1%80'}},
-  {id:12,name:'Олимпийский парк',city:'Сочи (Имеретинка)',lat:43.4020,lon:39.9550,
-   cats:['family','culture','city'], rating:4.7,pop:90, price:'частично платно',
-   img:'https://images.unsplash.com/photo-1518084823714-b8570d3d2a3a?auto=format&fit=crop&w=1200&q=60',
-   desc:'Прогулки вдоль арен и набережной, вечерние шоу фонтанов.',
-   partner:null},
-  {id:13,name:'Skypark AJ Hackett',city:'Сочи (Мзымта)',lat:43.5329,lon:39.9805,
-   cats:['adventure','mountain'], rating:4.7,pop:85, price:'аттракционы',
-   img:'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=1200&q=60',
-   desc:'Подвесной мост, банджи-джампинг и вид на каньоны.',
-   partner:null},
-  {id:14,name:'Сочинский дендрарий',city:'Сочи',lat:43.5812,lon:39.7285,
-   cats:['culture','family','nature'], rating:4.7,pop:86, price:'билеты',
-   img:'https://images.unsplash.com/photo-1558980664-10b1b13a1b06?auto=format&fit=crop&w=1200&q=60',
-   desc:'Исторический парк с канатной дорогой и коллекцией экзотов.',
-   partner:null},
-  {id:15,name:'Агурские водопады',city:'Сочи',lat:43.5434,lon:39.8576,
-   cats:['nature','mountain'], rating:4.6,pop:84, price:'экотропа',
-   img:'https://images.unsplash.com/photo-1520975922203-bc1ae19d01df?auto=format&fit=crop&w=1200&q=60',
-   desc:'Каскады в теснине, рядом — Орлиные скалы и вид на море.',
-   partner:null},
-  {id:16,name:'33 водопада',city:'Сочи (Кичмай)',lat:43.8297,lon:39.3923,
-   cats:['nature','family'], rating:4.6,pop:80, price:'экотропа',
-   img:'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&w=1200&q=60',
-   desc:'Маршрут по деревянным настилам вдоль каскадов реки Джегош.',
-   partner:null},
-  {id:17,name:'Гора Ахун и башня',city:'Сочи',lat:43.5234,lon:39.8689,
-   cats:['mountain','nature'], rating:4.7,pop:83, price:'билеты на башню',
-   img:'https://images.unsplash.com/photo-1520975693416-35a4f7b5b2ab?auto=format&fit=crop&w=1200&q=60',
-   desc:'Лучшие смотровые сочинского побережья.',
-   partner:null},
-  {id:18,name:'Тисо-самшитовая роща (Хоста)',city:'Сочи',lat:43.5226,lon:39.8609,
-   cats:['nature'], rating:4.7,pop:79, price:'экотропа',
-   img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=60',
-   desc:'Реликтовые леса, каньоны и висячие мхи.',
-   partner:null},
-  {id:19,name:'Каньон реки Псахо',city:'Сочи',lat:43.5486,lon:39.8349,
-   cats:['nature','adventure'], rating:4.6,pop:78, price:'экотропа',
-   img:'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=60',
-   desc:'Изумрудные ванны и карстовые галереи.',
-   partner:null},
-  {id:20,name:'Гуамское ущелье (узкоколейка)',city:'Апшеронск',lat:44.2289,lon:39.3818,
-   cats:['nature','adventure','mountain'], rating:4.7,pop:81, price:'ж/д маршрут',
-   img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=60',
-   desc:'Поезд вдоль отвесных скал и реки Курджипс.',
-   partner:null},
-  {id:21,name:'Скала Киселёва',city:'Туапсе',lat:44.0626,lon:39.0833,
-   cats:['sea','nature'], rating:4.6,pop:72, price:'бесплатно',
-   img:'https://images.unsplash.com/photo-1487537708572-3c850b5e856e?auto=format&fit=crop&w=1200&q=60',
-   desc:'Съёмочная локация “Бриллиантовой руки”.',
-   partner:null},
-  {id:22,name:'Дольмены долины Жане',city:'Геленджик',lat:44.4868,lon:38.2211,
-   cats:['culture','nature'], rating:4.5,pop:70, price:'входной',
-   img:'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=60',
-   desc:'Мистические мегалиты и водопады по пути.',
-   partner:null},
-  {id:23,name:'Винодельня Мысхако',city:'Новороссийск',lat:44.6686,lon:37.7188,
-   cats:['wine','sea'], rating:4.7,pop:76, price:'дегустации',
-   img:'https://images.unsplash.com/photo-1470145318698-cb03732f5ddf?auto=format&fit=crop&w=1200&q=60',
-   desc:'Виды на Цемесскую бухту и гастро-террасы.',
-   partner:null},
-  {id:24,name:'Голубая бухта',city:'Геленджик',lat:44.5232,lon:38.0475,
-   cats:['sea','family'], rating:4.6,pop:74, price:'бесплатно',
-   img:'https://images.unsplash.com/photo-1505761671935-60b3a7427bad?auto=format&fit=crop&w=1200&q=60',
-   desc:'Укромные пляжи и хвойный воздух.',
-   partner:null},
-  {id:25,name:'Навалищенское ущелье',city:'Сочи (Хоста)',lat:43.5668,lon:39.7883,
-   cats:['nature','adventure'], rating:4.5,pop:68, price:'экотропа',
-   img:'https://images.unsplash.com/photo-1520975922203-bc1ae19d01df?auto=format&fit=crop&w=1200&q=60',
-   desc:'Лёгкий трек в тени самшита и тиса.',
-   partner:null}
-];
-
-/* ------------ УТИЛИТЫ ------------- */
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-const km = d => (d).toFixed(1)+' км';
-function haversine(a,b){ // km
-  const R=6371, toRad=x=>x*Math.PI/180;
-  const dLat=toRad(b.lat-a.lat), dLon=toRad(b.lon-a.lon);
-  const s=Math.sin(dLat/2)**2+Math.cos(toRad(a.lat))*Math.cos(toRad(b.lat))*Math.sin(dLon/2)**2;
-  return 2*R*Math.asin(Math.sqrt(s));
-}
-function toast(msg, ms=2200){const t=$("#toast");t.textContent=msg;t.style.display='block';clearTimeout(t._to);t._to=setTimeout(()=>t.style.display='none',ms);}
-
-/* ------------ СОСТОЯНИЕ ------------- */
-let userPos=null; // {lat,lon}
-let activeCats=new Set(); // chips
-let query=''; let radius=100;
-let sortMode='distance';
-let markers=[]; let map; let layer;
-
-const favs = new Set(JSON.parse(localStorage.getItem('kk-favs')||'[]'));
-const route = JSON.parse(localStorage.getItem('kk-route')||'[]'); // ids[]
-
-/* ------------ ИНИТ UI ------------- */
-function buildChips(){
-  const wrap=$("#chips"); wrap.innerHTML='';
-  CATEGORIES.forEach(c=>{
-    const el=document.createElement('button');
-    el.className='chip'; el.textContent=c.label; el.dataset.id=c.id;
-    el.onclick=()=>{ 
-      if(activeCats.has(c.id)) activeCats.delete(c.id); else activeCats.add(c.id);
-      el.classList.toggle('active');
-      renderAll();
-    };
-    wrap.appendChild(el);
-  });
-}
-function buildMap(){
-  map=L.map('map',{scrollWheelZoom:true}).setView([44.9,38.7],8);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:19, attribution:'© OpenStreetMap'
-  }).addTo(map);
-  layer=L.layerGroup().addTo(map);
-}
-
-/* ------------ ФИЛЬТР/СОРТ ------------ */
-function filterData(){
-  let data=[...ATTRACTIONS];
-  if(query){
-    const q=query.toLowerCase();
-    data=data.filter(x=> (x.name+x.city+x.desc+x.cats.join(',')).toLowerCase().includes(q));
-  }
-  if(activeCats.size) data=data.filter(x=> x.cats.some(c=>activeCats.has(c)));
-  if(userPos){ data.forEach(x=> x._d=haversine(userPos,{lat:x.lat,lon:x.lon})); }
-  else { data.forEach(x=> x._d=Infinity); }
-  if(userPos) data=data.filter(x=> x._d<=radius);
-  data.sort((a,b)=>{
-    if(sortMode==='distance') return (a._d)-(b._d);
-    if(sortMode==='rating') return (b.rating)-(a.rating);
-    if(sortMode==='popularity') return (b.pop)-(a.pop);
-    if(sortMode==='name') return a.name.localeCompare(b.name,'ru');
-    return 0;
-  });
-  return data;
-}
-
-/* ------------ РЕНДЕР СПИСКА ------------ */
-function renderList(data){
-  const wrap=$("#list"); wrap.innerHTML='';
-  if(!data.length){wrap.innerHTML=`<div class="empty">Ничего не найдено. Попробуй сбросить фильтры или расширить радиус.</div>`; return}
-  data.forEach(x=>{
-    const fav=favs.has(x.id);
-    const inRoute=route.includes(x.id);
-    const d = Number.isFinite(x._d)? km(x._d): '—';
-    const card=document.createElement('article');
-    card.className='card';
-    card.innerHTML=`
-      <img src="${x.img}" alt="${x.name}" loading="lazy">
-      <div class="card-body">
-        <h3>${x.name}</h3>
-        <div class="meta">
-          <span>📍 ${x.city}</span>
-          <span>⭐ ${x.rating.toFixed(1)}</span>
-          <span>📏 ${d}</span>
-        </div>
-        <div class="tags">${x.cats.map(c=>`<span class="tag">#${c}</span>`).join('')}</div>
-        <div class="kpi"><span>Стоимость: <b>${x.price}</b></span><span>Популярность: <b>${x.pop}</b></span></div>
-        <div class="actions">
-          <button class="btn" data-act="route">${inRoute?'В маршруте ✅':'В маршрут'}</button>
-          <button class="btn ghost" data-act="nav">Маршрут к месту</button>
-          ${x.partner?`<a class="btn primary" href="${x.partner.url}" target="_blank" rel="noopener">${x.partner.label}</a>`:''}
-          <button class="btn ghost" data-act="fav">${fav?'★ В избранном':'☆ В избранное'}</button>
-          <button class="btn ghost" data-act="more">Подробнее</button>
-        </div>
-        <div class="more" style="display:none;margin-top:8px;color:var(--muted)">${x.desc}</div>
-      </div>`;
-    card.querySelector('[data-act="more"]').onclick=()=>card.querySelector('.more').style.display='block';
-    card.querySelector('[data-act="fav"]').onclick=()=>{
-      if(favs.has(x.id)) favs.delete(x.id); else favs.add(x.id);
-      localStorage.setItem('kk-favs',JSON.stringify([...favs]));
-      renderAll(); toast('Избранное обновлено');
-    };
-    card.querySelector('[data-act="route"]').onclick=()=>{
-      const idx=route.indexOf(x.id);
-      if(idx>=0) route.splice(idx,1); else route.push(x.id);
-      localStorage.setItem('kk-route',JSON.stringify(route));
-      renderAll(); toast('Маршрут обновлён');
-    };
-    card.querySelector('[data-act="nav"]').onclick=()=>{
-      openSingleNav(x);
-    };
-    wrap.appendChild(card);
-  });
-  $("#count").textContent=data.length;
-}
-
-/* ------------ КАРТА ------------ */
-function renderMap(data){
-  layer.clearLayers(); markers=[];
-  const bounds=[];
-  data.forEach(x=>{
-    const m=L.marker([x.lat,x.lon]).addTo(layer).bindPopup(
-      `<b>${x.name}</b><br>${x.city}<br>⭐ ${x.rating.toFixed(1)}${Number.isFinite(x._d)?` · ${km(x._d)}`:''}<br>
-       <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
-         <a href="#" data-id="${x.id}" data-what="add" class="lnk">В маршрут</a>
-         <a href="#" data-id="${x.id}" data-what="nav" class="lnk">Навигатор</a>
-       </div>`
-    );
-    m.on('popupopen',e=>{
-      const el=e.popup.getElement();
-      el.querySelectorAll('a.lnk').forEach(a=>{
-        a.onclick=(ev)=>{
-          ev.preventDefault();
-          const id=+a.dataset.id; const item=ATTRACTIONS.find(z=>z.id===id);
-          if(a.dataset.what==='add'){
-            if(!route.includes(id)) route.push(id);
-            localStorage.setItem('kk-route',JSON.stringify(route));
-            renderAll(); toast('Добавлено в маршрут');
-          }else if(a.dataset.what==='nav'){ openSingleNav(item); }
-        };
-      });
-    });
-    markers.push(m); bounds.push([x.lat,x.lon]);
-  });
-  if(bounds.length) map.fitBounds(bounds,{padding:[20,20]});
-  if(userPos){
-    const userMarker=L.circleMarker([userPos.lat,userPos.lon],{radius:8,color:'#00b4f0',fillOpacity:.8}).addTo(layer).bindTooltip('Вы здесь');
-    bounds.push([userPos.lat,userPos.lon]);
-  }
-}
-
-/* ------------ МАРШРУТ ------------ */
-function renderRoute(){
-  const box=$("#stops"); box.innerHTML='';
-  const items=route.map(id=>ATTRACTIONS.find(x=>x.id===id)).filter(Boolean);
-  let total=0;
-  if(items.length){
-    for(let i=0;i<items.length;i++){
-      const a=items[i], b=items[i+1]; if(b) total+=haversine(a,b);
-    }
-  }
-  items.forEach((x,i)=>{
-    const el=document.createElement('div');
-    el.className='stop';
-    el.innerHTML=`
-      <div class="row"><b>${i+1}. ${x.name}</b> <button class="del" title="Удалить">✕</button></div>
-      <div class="small">📍 ${x.city}</div>
-    `;
-    el.querySelector('.del').onclick=()=>{ route.splice(i,1); localStorage.setItem('kk-route',JSON.stringify(route)); renderAll(); };
-    box.appendChild(el);
-  });
-  $("#route-stats").textContent = items.length? `Точек: ${items.length} · Протяжённость ≈ ${km(total)}` : 'пусто';
-}
-
-function optimizeRoute(){
-  if(route.length<3){ toast('Нужно минимум 3 точки'); return }
-  // жадный алгоритм: старт — 1-я точка, дальше ближайшая
-  const points=route.map(id=>ATTRACTIONS.find(x=>x.id===id));
-  const used=new Set([points[0].id]); const order=[points[0]];
-  while(order.length<points.length){
-    const last=order[order.length-1];
-    const cand=points.filter(p=>!used.has(p.id)).map(p=>({p, d:haversine(last,p)})).sort((a,b)=>a.d-b.d)[0].p;
-    used.add(cand.id); order.push(cand);
-  }
-  const ids=order.map(x=>x.id); route.splice(0,route.length,...ids);
-  localStorage.setItem('kk-route',JSON.stringify(route));
-  renderAll(); toast('Маршрут упорядочен по близости');
-}
-
-function openSingleNav(x){
-  const hasUser=!!userPos;
-  const ym = hasUser
-    ? `https://yandex.ru/maps/?rtext=${userPos.lat}%2C${userPos.lon}~${x.lat}%2C${x.lon}&rtt=auto`
-    : `https://yandex.ru/maps/?ll=${x.lon}%2C${x.lat}&z=13&pt=${x.lon}%2C${x.lat},pm2rdm`;
-  window.open(ym,'_blank','noopener');
-}
-
-function openRouteYMaps(){
-  const items=route.map(id=>ATTRACTIONS.find(x=>x.id===id)).filter(Boolean);
-  if(!items.length){ toast('Добавь точки в маршрут'); return }
-  const parts=[];
-  if(userPos) parts.push(`${userPos.lat}%2C${userPos.lon}`);
-  items.forEach(x=>parts.push(`${x.lat}%2C${x.lon}`));
-  const url=`https://yandex.ru/maps/?rtext=${parts.join('~')}&rtt=auto`;
-  window.open(url,'_blank','noopener');
-}
-function openRouteGMaps(){
-  const items=route.map(id=>ATTRACTIONS.find(x=>x.id===id)).filter(Boolean);
-  if(!items.length){ toast('Добавь точки в маршрут'); return }
-  let origin='',dest='',way=[];
-  if(userPos){ origin=`${userPos.lat},${userPos.lon}`; dest=`${items.at(-1).lat},${items.at(-1).lon}`; way=items.slice(0,-1).map(x=>`${x.lat},${x.lon}`); }
-  else{ origin=`${items[0].lat},${items[0].lon}`; dest=`${items.at(-1).lat},${items.at(-1).lon}`; way=items.slice(1,-1).map(x=>`${x.lat},${x.lon}`); }
-  const url=`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}&travelmode=driving${way.length?`&waypoints=${way.join('|')}`:''}`;
-  window.open(url,'_blank','noopener');
-}
-
-/* ------------ ШЭРИНГ/ИЗБРАННОЕ ------------ */
-function applyShareFromURL(){
-  const p=new URLSearchParams(location.search);
-  const ids=(p.get('ids')||'').split(',').map(s=>+s).filter(Boolean);
-  if(ids.length){ route.splice(0,route.length,...ids); localStorage.setItem('kk-route',JSON.stringify(route)); }
-}
-function shareCurrent(){
-  const u=new URL(location.href);
-  if(route.length) u.searchParams.set('ids', route.join(','));
-  else u.searchParams.delete('ids');
-  navigator.clipboard.writeText(u.toString()).then(()=>toast('Ссылка скопирована')).catch(()=>toast(u.toString()));
-}
-function renderFavCount(){ $("#fav-count").textContent = favs.size }
-
-/* ------------ ГЕОПОЗИЦИЯ ------------- */
-function locate(){
-  if(!navigator.geolocation){ toast('Геолокация недоступна'); return }
-  navigator.geolocation.getCurrentPosition(pos=>{
-    userPos={lat:pos.coords.latitude,lon:pos.coords.longitude};
-    $("#near").textContent=`${userPos.lat.toFixed(3)}, ${userPos.lon.toFixed(3)}`;
-    renderAll();
-    toast('Геопозиция определена');
-  },err=>{
-    toast('Не удалось определить геопозицию');
-  },{enableHighAccuracy:true,timeout:8000,maximumAge:60000});
-}
-
-/* ------------ РЕНДЕР ВСЕГО ------------- */
-function renderAll(){
-  const data=filterData();
-  renderList(data); renderMap(data); renderRoute(); renderFavCount();
-}
-
-/* ------------ СЛУШАТЕЛИ ------------- */
-buildChips();
-buildMap();
-applyShareFromURL();
-renderAll();
-
-$("#q").oninput=(e)=>{query=e.target.value.trim(); renderAll();}
-$("#btn-reset").onclick=()=>{query=''; $("#q").value=''; activeCats.clear(); $$('#chips .chip').forEach(x=>x.classList.remove('active')); renderAll();}
-$("#btn-locate").onclick=locate;
-$("#radius").oninput=(e)=>{radius=+e.target.value; $("#rad-val").textContent=radius; renderAll();}
-$("#sort").onchange=(e)=>{sortMode=e.target.value; renderAll();}
-$("#btn-opt").onclick=optimizeRoute;
-$("#btn-clear").onclick=()=>{route.splice(0,route.length); localStorage.setItem('kk-route',JSON.stringify(route)); renderAll();}
-$("#btn-ymaps").onclick=openRouteYMaps;
-$("#btn-gmaps").onclick=openRouteGMaps;
-$("#btn-share").onclick=shareCurrent;
-$("#btn-favs").onclick=()=>{
-  if(!favs.size){ toast('В избранном пусто'); return }
-  query=''; $("#q").value='';
-  activeCats.clear(); $$('#chips .chip').forEach(x=>x.classList.remove('active'));
-  const prevPos=userPos; userPos=null;
-  const data=ATTRACTIONS.filter(x=>favs.has(x.id)).map(x=>({...x,_d:Infinity}));
-  renderList(data); renderMap(data);
-  $("#near").textContent='избранное';
-  userPos=prevPos;
-  toast('Показаны избранные места');
-};
-
-if(new URLSearchParams(location.search).get('ids')) toast('Маршрут загружен по ссылке');
-</script>
-</body>
-</html>
+   img:'https://images.unsplash.com/photo-1541844053589-346841d0d3a8?auto=format&fit=crop&w=
