@@ -1,302 +1,1498 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Путешествуй по России</title>
-  <!-- Карта Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    integrity="sha256-o3GkG3ry3GGGNkY09JEMvR2sX4Mha+2xb/n60X3qtvA="
-    crossorigin=""
-  />
-  <style>
-    /* Базовые стили и переменные */
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: sans-serif;
-      background: #f8f9fa;
-      color: #333;
-      line-height: 1.5;
-    }
-    :root {
-      --primary: #0d6efd;
-      --secondary: #ff7f00;
-      --light: #fff;
-      --dark: #343a40;
-    }
-    /* Шапка */
-    header {
-      background: var(--light);
-      border-bottom: 1px solid #eaeaea;
-      padding: 0.8rem 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .logo {
-      font-weight: 700;
-      color: var(--primary);
-    }
-    .logo span { color: var(--secondary); }
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 1rem;
-    }
-    nav a {
-      text-decoration: none;
-      color: var(--dark);
-      font-weight: 500;
-    }
-    nav a:hover { color: var(--primary); }
-    /* Герой */
-    .hero {
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: var(--light);
-      text-align: center;
-      padding: 4rem 1rem;
-    }
-    .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-    .hero p { margin-bottom: 1rem; }
-    .btn {
-      display: inline-block;
-      padding: 0.6rem 1rem;
-      margin: 0.3rem;
-      border-radius: 4px;
-      text-decoration: none;
-      color: var(--light);
-    }
-    .btn-primary { background: var(--primary); }
-    .btn-secondary { background: var(--secondary); }
-    /* Разделы */
-    .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
-    #map { width: 100%; height: 400px; margin-bottom: 1rem; }
-    .list-container, .services-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
-    }
-    .card {
-      background: var(--light);
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
-      padding: 0.8rem;
-    }
-    .card h3 { color: var(--primary); margin-bottom: 0.5rem; }
-    .card p { font-size: 0.9rem; }
-    footer {
-      background: var(--dark);
-      color: var(--light);
-      padding: 2rem 1rem;
-      margin-top: 2rem;
-    }
-    footer a { color: var(--secondary); text-decoration: none; }
-    footer a:hover { text-decoration: underline; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Открой Россию - Все достопримечательности и приключения</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Навигация */
+        .navbar {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Главный экран */
+        .hero {
+            margin-top: 80px;
+            padding: 4rem 2rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(243,244,246,0.95) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 50px 50px;
+        }
+
+        .hero-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-content h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+        }
+
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-content p {
+            font-size: 1.3rem;
+            color: #6b7280;
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-location {
+            background: linear-gradient(135deg, var(--secondary) 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-location:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(16, 185, 129, 0.4);
+        }
+
+        /* Поиск */
+        .search-section {
+            padding: 3rem 2rem;
+            background: white;
+            margin: 2rem auto;
+            max-width: 1400px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        /* Фильтры */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        .filter-chip {
+            padding: 0.5rem 1.5rem;
+            border-radius: 25px;
+            background: var(--light);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .filter-chip:hover {
+            background: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Карта */
+        #map {
+            height: 600px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            margin: 2rem 0;
+        }
+
+        /* Карточки мест */
+        .places-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .place-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .place-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .place-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+        }
+
+        .place-content {
+            padding: 1.5rem;
+        }
+
+        .place-category {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .place-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .place-location {
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .place-description {
+            color: #4b5563;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .place-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .place-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .star {
+            color: var(--accent);
+        }
+
+        .place-distance {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* Секция услуг */
+        .services-section {
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 20px;
+            margin: 2rem auto;
+            max-width: 1400px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .service-card {
+            background: var(--light);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            background: white;
+        }
+
+        .service-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .service-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-count {
+            color: #6b7280;
+        }
+
+        /* Контакты операторов */
+        .operators-section {
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(243,244,246,0.95) 100%);
+            border-radius: 20px;
+            margin: 2rem auto;
+            max-width: 1400px;
+        }
+
+        .operator-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .operator-card:hover {
+            transform: translateX(10px);
+            box-shadow: var(--shadow);
+        }
+
+        .operator-info h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .operator-services {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .operator-service-tag {
+            padding: 0.25rem 0.75rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+            border-radius: 15px;
+            font-size: 0.875rem;
+        }
+
+        .operator-contact {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .contact-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .contact-phone {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .contact-whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .contact-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Статистика */
+        .stats-section {
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-radius: 20px;
+            margin: 2rem auto;
+            max-width: 1400px;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-card {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* Футер */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 2rem;
+            margin-top: 4rem;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .footer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+        }
+
+        .footer-section a {
+            color: #9ca3af;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .hero-content h1 {
+                font-size: 2rem;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .places-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+        }
+
+        /* Анимация загрузки */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            z-index: 3000;
+            animation: slideInRight 0.3s ease;
+            display: none;
+        }
+
+        .notification.show {
+            display: block;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .notification.success {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .notification.error {
+            border-left: 4px solid var(--danger);
+        }
+    </style>
 </head>
 <body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-map-marked-alt"></i>
+                Открой Россию
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" class="nav-link active" onclick="showSection('home')">Главная</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('map')">Карта</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('places')">Места</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('services')">Услуги</a></li>
+                <li><a href="#" class="nav-link" onclick="showSection('operators')">Туроператоры</a></li>
+            </ul>
+        </div>
+    </nav>
 
-  <header>
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <div class="logo">Путешествуй<span>.RU</span></div>
-      <nav>
-        <ul>
-          <li><a href="#map">Карта</a></li>
-          <li><a href="#list">Достопримечательности</a></li>
-          <li><a href="#services">Сервисы</a></li>
-        </ul>
-      </nav>
+    <!-- Главный экран -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1>Откройте для себя всю красоту России</h1>
+                <p>Более 10 000 достопримечательностей, 500+ туроператоров и сотни приключений ждут вас!</p>
+                <div class="hero-buttons">
+                    <button class="btn btn-location" onclick="getLocation()">
+                        <i class="fas fa-location-arrow"></i>
+                        Что рядом со мной?
+                    </button>
+                    <button class="btn btn-primary" onclick="showSection('map')">
+                        <i class="fas fa-map"></i>
+                        Открыть карту
+                    </button>
+                    <button class="btn btn-secondary" onclick="showRandomPlace()">
+                        <i class="fas fa-random"></i>
+                        Случайное место
+                    </button>
+                </div>
+            </div>
+            <div class="hero-stats">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">10,000+</div>
+                        <div class="stat-label">Достопримечательностей</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Туроператоров</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">85</div>
+                        <div class="stat-label">Регионов</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Поддержка</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Поиск и фильтры -->
+    <section class="search-section">
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Поиск мест, городов, активностей..." id="searchInput">
+            <button class="btn btn-primary" onclick="searchPlaces()">
+                <i class="fas fa-search"></i>
+                Найти
+            </button>
+        </div>
+        <div class="filters">
+            <div class="filter-chip active" onclick="filterBy('all')">Все</div>
+            <div class="filter-chip" onclick="filterBy('nature')">
+                <i class="fas fa-mountain"></i> Природа
+            </div>
+            <div class="filter-chip" onclick="filterBy('history')">
+                <i class="fas fa-monument"></i> История
+            </div>
+            <div class="filter-chip" onclick="filterBy('culture')">
+                <i class="fas fa-theater-masks"></i> Культура
+            </div>
+            <div class="filter-chip" onclick="filterBy('adventure')">
+                <i class="fas fa-hiking"></i> Приключения
+            </div>
+            <div class="filter-chip" onclick="filterBy('family')">
+                <i class="fas fa-child"></i> Для семьи
+            </div>
+            <div class="filter-chip" onclick="filterBy('extreme')">
+                <i class="fas fa-parachute-box"></i> Экстрим
+            </div>
+        </div>
+    </section>
+
+    <!-- Карта -->
+    <section class="search-section">
+        <h2 style="margin-bottom: 1rem;">Интерактивная карта достопримечательностей</h2>
+        <div id="map"></div>
+    </section>
+
+    <!-- Карточки мест -->
+    <section class="search-section">
+        <h2 style="margin-bottom: 2rem;">Популярные направления</h2>
+        <div class="places-grid" id="placesGrid">
+            <!-- Места будут добавлены через JavaScript -->
+        </div>
+    </section>
+
+    <!-- Услуги -->
+    <section class="services-section">
+        <h2 style="margin-bottom: 1rem;">Виды активного отдыха</h2>
+        <div class="services-grid">
+            <div class="service-card" onclick="filterByService('jeeping')">
+                <div class="service-icon"><i class="fas fa-truck-monster"></i></div>
+                <div class="service-title">Джипинг</div>
+                <div class="service-count">150+ маршрутов</div>
+            </div>
+            <div class="service-card" onclick="filterByService('rafting')">
+                <div class="service-icon"><i class="fas fa-water"></i></div>
+                <div class="service-title">Рафтинг</div>
+                <div class="service-count">80+ рек</div>
+            </div>
+            <div class="service-card" onclick="filterByService('kayaking')">
+                <div class="service-icon"><i class="fas fa-ship"></i></div>
+                <div class="service-title">Байдарки</div>
+                <div class="service-count">200+ маршрутов</div>
+            </div>
+            <div class="service-card" onclick="filterByService('hiking')">
+                <div class="service-icon"><i class="fas fa-hiking"></i></div>
+                <div class="service-title">Треккинг</div>
+                <div class="service-count">500+ троп</div>
+            </div>
+            <div class="service-card" onclick="filterByService('diving')">
+                <div class="service-icon"><i class="fas fa-swimmer"></i></div>
+                <div class="service-title">Дайвинг</div>
+                <div class="service-count">50+ спотов</div>
+            </div>
+            <div class="service-card" onclick="filterByService('paragliding')">
+                <div class="service-icon"><i class="fas fa-parachute-box"></i></div>
+                <div class="service-title">Параплан</div>
+                <div class="service-count">30+ точек</div>
+            </div>
+            <div class="service-card" onclick="filterByService('climbing')">
+                <div class="service-icon"><i class="fas fa-mountain"></i></div>
+                <div class="service-title">Альпинизм</div>
+                <div class="service-count">100+ маршрутов</div>
+            </div>
+            <div class="service-card" onclick="filterByService('skiing')">
+                <div class="service-icon"><i class="fas fa-skiing"></i></div>
+                <div class="service-title">Горные лыжи</div>
+                <div class="service-count">70+ курортов</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Туроператоры -->
+    <section class="operators-section">
+        <h2 style="margin-bottom: 2rem;">Проверенные туроператоры</h2>
+        <div id="operatorsList">
+            <!-- Операторы будут добавлены через JavaScript -->
+        </div>
+    </section>
+
+    <!-- Модальное окно -->
+    <div class="modal" id="placeModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <h2 id="modalTitle">Название места</h2>
+                <p id="modalLocation">Расположение</p>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Содержимое модального окна -->
+            </div>
+        </div>
     </div>
-  </header>
 
-  <section class="hero">
-    <h1>Открой Россию</h1>
-    <p>Лучшие места и приключения для путешественников</p>
-    <a href="#map" class="btn btn-primary">К карте</a>
-    <a href="#services" class="btn btn-secondary">Туры и приключения</a>
-  </section>
-
-  <!-- Поиск -->
-  <div class="container">
-    <form id="search-form" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-      <input id="search-input" type="text" placeholder="Введите город (например, Москва)" style="flex:1;padding:0.5rem;border:1px solid #ccc;border-radius:4px;">
-      <button type="submit" class="btn btn-primary">Искать</button>
-      <button type="button" id="geo-btn" class="btn btn-secondary">Моё местоположение</button>
-    </form>
-    <p style="font-size:0.8rem;color:#666;margin-top:0.5rem;">Можно выбрать поиск по городу или определить своё местоположение.</p>
-  </div>
-
-  <!-- Карта -->
-  <div id="map"></div>
-
-  <!-- Список достопримечательностей -->
-  <div class="container">
-    <h2 id="list">Список достопримечательностей</h2>
-    <div id="list-container" class="list-container"></div>
-  </div>
-
-  <!-- Сервисы -->
-  <div class="container">
-    <h2 id="services">Активные приключения и туры</h2>
-    <div id="services-container" class="services-container"></div>
-  </div>
-
-  <!-- Подвал -->
-  <footer>
-    <div style="display:flex;flex-wrap:wrap;gap:2rem;">
-      <div style="flex:1;">
-        <h3>О проекте</h3>
-        <p>Сайт создан для того, чтобы вы могли открыть для себя удивительные места России и узнать, где заказать активные туры.</p>
-      </div>
-      <div>
-        <h3>Контакты</h3>
-        <p>Пишите предложения на <a href="mailto:info@puteshestvuy.ru">info@puteshestvuy.ru</a></p>
-      </div>
+    <!-- Уведомления -->
+    <div class="notification" id="notification">
+        <p id="notificationText"></p>
     </div>
-    <p style="margin-top:1rem;font-size:0.8rem;">© 2025 Путешествуй.РУ</p>
-  </footer>
 
-  <!-- Библиотека карты -->
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    integrity="sha256-o//DsQoZdFWG1DR+jVB/YQLQYmkOZhlmkoN1Vj+2a54="
-    crossorigin=""
-  ></script>
-  <script>
-    // Статический список достопримечательностей
-    const attractions = [
-      { name: 'Красная площадь', city: 'Москва', lat: 55.7539, lon: 37.6208, desc: 'Исторический центр Москвы и сердца России.' },
-      { name: 'Эрмитаж', city: 'Санкт-Петербург', lat: 59.9398, lon: 30.3146, desc: 'Один из крупнейших музеев искусства и культуры.' },
-      { name: 'Остров Кижи', city: 'Карелия', lat: 62.0613, lon: 35.2338, desc: 'Музей под открытым небом с деревянными храмами.' },
-      { name: 'Озеро Байкал', city: 'Иркутск', lat: 53.5587, lon: 108.1650, desc: 'Самое глубокое озеро на планете, «жемчужина Сибири».' },
-      { name: 'Эльбрус', city: 'Кавказ', lat: 43.3499, lon: 42.4453, desc: 'Высочайшая гора Европы и популярный альпинистский объект.' },
-      { name: 'Куршская коса', city: 'Калининград', lat: 55.2423, lon: 20.9106, desc: 'Уникальный национальный парк на Балтике.' },
-      { name: 'Камчатские вулканы', city: 'Камчатка', lat: 53.1365, lon: 158.3711, desc: 'Грандиозный вулканический пейзаж полуострова.' },
-      { name: 'Петродворец (Петергоф)', city: 'Санкт-Петербург', lat: 59.8800, lon: 29.8870, desc: 'Императорский дворец и знаменитые фонтаны.' },
-      { name: 'Казанский кремль', city: 'Казань', lat: 55.7961, lon: 49.1082, desc: 'Историческая крепость и символ Татарстана.' },
-      { name: 'Алтайские горы', city: 'Алтай', lat: 50.0073, lon: 86.9921, desc: 'Живописные горы, озёра и реки Горного Алтая.' }
-    ];
+    <!-- Футер -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>О проекте</h3>
+                <p>Открой Россию - ваш гид по самым интересным местам страны. Мы собрали всю информацию о достопримечательностях и активном отдыхе в одном месте.</p>
+                <div class="social-links">
+                    <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Быстрые ссылки</h3>
+                <a href="#">Популярные маршруты</a>
+                <a href="#">Новые места</a>
+                <a href="#">Гиды и экскурсоводы</a>
+                <a href="#">Блог о путешествиях</a>
+            </div>
+            <div class="footer-section">
+                <h3>Помощь</h3>
+                <a href="#">Как пользоваться</a>
+                <a href="#">Частые вопросы</a>
+                <a href="#">Контакты</a>
+                <a href="#">Партнерам</a>
+            </div>
+            <div class="footer-section">
+                <h3>Контакты</h3>
+                <p><i class="fas fa-phone"></i> +7 (800) 555-35-35</p>
+                <p><i class="fas fa-envelope"></i> info@openrussia.ru</p>
+                <p><i class="fas fa-clock"></i> Круглосуточная поддержка</p>
+            </div>
+        </div>
+    </footer>
 
-    // Данные туроператоров
-    const services = [
-      { name:'RussiaDiscovery', desc:'Экспедиции и джип-туры по России.', phone:'+7 495 323-98-45', email:null, web:'https://www.russiadiscovery.ru' },
-      { name:'Trophy‑Life', desc:'Джип-туры по Подмосковью и подарочные сертификаты.', phone:'+7 495 649-65-79', email:'info@trophy-life.ru', web:'https://trophy-life.ru' },
-      { name:'М‑драйв Джип тур', desc:'Авторские джип-туры по Крыму.', phone:'+7 978 007-81-11', email:null, web:'https://xn----8sbgg0ao4a.xn--p1ai' },
-      { name:'Турклуб ПИК', desc:'Байдарочные походы, восхождения и автотуры.', phone:'8 800 200-2456', email:null, web:'https://turclub-pik.ru' },
-      { name:'Ахтилахти', desc:'Туры на байдарках, каяках и SUP вокруг Санкт-Петербурга и по России.', phone:'+7 911 701-71-51', email:'go@ahtilahti.ru', web:'https://ahtilahti.ru' },
-      { name:'Adventure Guide', desc:'Сплавы на байдарках, рафтинг и другие приключения.', phone:'+7 495 197-89-23, 8 800 201-31-58, +7 953 534-25-92', email:null, web:'https://adventure-guide.ru' }
-    ];
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // База данных достопримечательностей (пример)
+        const places = [
+            {
+                id: 1,
+                name: "Красная площадь",
+                category: "history",
+                location: "Москва",
+                coordinates: [55.7539, 37.6208],
+                description: "Главная площадь России, символ страны с Кремлем и Собором Василия Блаженного",
+                rating: 4.9,
+                image: "🏛️",
+                services: ["экскурсии", "фотосессии"],
+                operators: ["Московские экскурсии", "Гид по столице"]
+            },
+            {
+                id: 2,
+                name: "Байкал",
+                category: "nature",
+                location: "Иркутская область",
+                coordinates: [53.5587, 108.1650],
+                description: "Самое глубокое озеро в мире с кристально чистой водой",
+                rating: 5.0,
+                image: "🏔️",
+                services: ["дайвинг", "треккинг", "байдарки"],
+                operators: ["Байкальские приключения", "Сибирь-тур"]
+            },
+            {
+                id: 3,
+                name: "Эрмитаж",
+                category: "culture",
+                location: "Санкт-Петербург",
+                coordinates: [59.9398, 30.3146],
+                description: "Один из крупнейших музеев мира с уникальной коллекцией искусства",
+                rating: 4.8,
+                image: "🎨",
+                services: ["экскурсии", "аудиогиды"],
+                operators: ["Питер-гид", "Невские экскурсии"]
+            },
+            {
+                id: 4,
+                name: "Камчатка",
+                category: "adventure",
+                location: "Камчатский край",
+                coordinates: [56.1327, 159.5314],
+                description: "Край вулканов, гейзеров и дикой природы",
+                rating: 4.9,
+                image: "🌋",
+                services: ["джипинг", "вертолетные туры", "треккинг"],
+                operators: ["Камчатка-экстрим", "Вулкан-тур"]
+            },
+            {
+                id: 5,
+                name: "Алтай",
+                category: "extreme",
+                location: "Республика Алтай",
+                coordinates: [50.7114, 86.8577],
+                description: "Горная страна с потрясающими пейзажами и экстремальными маршрутами",
+                rating: 4.9,
+                image: "⛰️",
+                services: ["рафтинг", "джипинг", "альпинизм"],
+                operators: ["Алтай-актив", "Горный Алтай тур"]
+            },
+            {
+                id: 6,
+                name: "Сочи Парк",
+                category: "family",
+                location: "Сочи",
+                coordinates: [43.4020, 39.9570],
+                description: "Тематический парк развлечений для всей семьи",
+                rating: 4.7,
+                image: "🎢",
+                services: ["аттракционы", "шоу", "квесты"],
+                operators: ["Сочи для детей", "Семейный отдых"]
+            },
+            {
+                id: 7,
+                name: "Кижи",
+                category: "history",
+                location: "Республика Карелия",
+                coordinates: [62.0669, 35.2256],
+                description: "Музей деревянного зодчества под открытым небом",
+                rating: 4.8,
+                image: "⛪",
+                services: ["экскурсии", "мастер-классы"],
+                operators: ["Карелия-тур", "Онежские путешествия"]
+            },
+            {
+                id: 8,
+                name: "Домбай",
+                category: "extreme",
+                location: "Карачаево-Черкесия",
+                coordinates: [43.2906, 41.6251],
+                description: "Горнолыжный курорт с отличными трассами",
+                rating: 4.7,
+                image: "🎿",
+                services: ["горные лыжи", "сноуборд", "канатная дорога"],
+                operators: ["Домбай-ски", "Кавказ экстрим"]
+            }
+        ];
 
-    let map, markers;
+        // База туроператоров
+        const operators = [
+            {
+                name: "Байкальские приключения",
+                region: "Иркутская область",
+                services: ["джипинг", "байдарки", "треккинг"],
+                phone: "+7 (902) 123-45-67",
+                whatsapp: "+79021234567",
+                rating: 4.9
+            },
+            {
+                name: "Камчатка-экстрим",
+                region: "Камчатский край",
+                services: ["вертолетные туры", "джипинг", "рыбалка"],
+                phone: "+7 (914) 234-56-78",
+                whatsapp: "+79142345678",
+                rating: 5.0
+            },
+            {
+                name: "Алтай-актив",
+                region: "Республика Алтай",
+                services: ["рафтинг", "конные туры", "альпинизм"],
+                phone: "+7 (903) 345-67-89",
+                whatsapp: "+79033456789",
+                rating: 4.8
+            },
+            {
+                name: "Карелия-тур",
+                region: "Республика Карелия",
+                services: ["байдарки", "рыбалка", "экскурсии"],
+                phone: "+7 (921) 456-78-90",
+                whatsapp: "+79214567890",
+                rating: 4.7
+            },
+            {
+                name: "Кавказ экстрим",
+                region: "Северный Кавказ",
+                services: ["параплан", "джипинг", "каньонинг"],
+                phone: "+7 (928) 567-89-01",
+                whatsapp: "+79285678901",
+                rating: 4.9
+            }
+        ];
 
-    // Инициализация карты
-    function initMap() {
-      map = L.map('map').setView([58.5, 50], 4);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
-      markers = L.layerGroup().addTo(map);
-      displayAttractions(attractions); // показываем все по умолчанию
-    }
+        // Инициализация карты
+        let map;
+        let userMarker;
+        let userLocation = null;
 
-    // Добавление маркеров и списка
-    function displayAttractions(list) {
-      markers.clearLayers();
-      document.getElementById('list-container').innerHTML = '';
-      list.forEach(item => {
-        const marker = L.marker([item.lat, item.lon]).addTo(markers);
-        marker.bindPopup('<strong>' + item.name + '</strong><br>' + item.desc);
-        // Карточка в списке
-        const card = document.createElement('div');
-        card.className = 'card';
-        const title = document.createElement('h3');
-        title.textContent = item.name;
-        const text = document.createElement('p');
-        text.textContent = item.desc;
-        card.appendChild(title);
-        card.appendChild(text);
-        document.getElementById('list-container').appendChild(card);
-      });
-    }
+        function initMap() {
+            map = L.map('map').setView([55.7558, 37.6173], 5);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
 
-    // Поиск по городу
-    document.getElementById('search-form').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const query = document.getElementById('search-input').value.trim().toLowerCase();
-      if (!query) { displayAttractions(attractions); return; }
-      const filtered = attractions.filter(a => a.city.toLowerCase().includes(query));
-      if (filtered.length) {
-        // центрируем карту на первом совпадении
-        map.setView([filtered[0].lat, filtered[0].lon], 6);
-        displayAttractions(filtered);
-      } else {
-        alert('Ничего не найдено, показываем все места.');
-        displayAttractions(attractions);
-      }
-    });
+            // Добавление маркеров мест
+            places.forEach(place => {
+                const marker = L.marker(place.coordinates)
+                    .bindPopup(`
+                        <strong>${place.name}</strong><br>
+                        ${place.location}<br>
+                        <button class="btn btn-primary" style="margin-top: 10px; padding: 5px 10px; font-size: 0.9rem;" onclick="showPlaceDetails(${place.id})">Подробнее</button>
+                    `)
+                    .addTo(map);
+            });
+        }
 
-    // Геолокация
-    document.getElementById('geo-btn').addEventListener('click', function() {
-      if (!navigator.geolocation) {
-        alert('Ваш браузер не поддерживает геолокацию');
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(function(pos) {
-        const { latitude, longitude } = pos.coords;
-        map.setView([latitude, longitude], 5);
-        // ищем ближайшие достопримечательности (до 300 км)
-        const near = attractions
-          .map(a => {
-            return { ...a, dist: distance(latitude, longitude, a.lat, a.lon) };
-          })
-          .filter(a => a.dist <= 300)
-          .sort((a,b) => a.dist - b.dist);
-        displayAttractions(near.length ? near : attractions);
-      }, function() {
-        alert('Не удалось определить местоположение');
-      });
-    });
+        // Получение геолокации
+        function getLocation() {
+            if (navigator.geolocation) {
+                showNotification('Определяем ваше местоположение...', 'success');
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                showNotification('Геолокация не поддерживается вашим браузером', 'error');
+            }
+        }
 
-    // Haversine: расстояние между двумя координатами (км)
-    function distance(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = toRad(lat2-lat1);
-      const dLon = toRad(lon2-lon1);
-      const a =
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c;
-    }
-    function toRad(deg) { return deg * Math.PI/180; }
+        function showPosition(position) {
+            userLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
 
-    // Вывод сервисов
-    function displayServices() {
-      const container = document.getElementById('services-container');
-      services.forEach(s => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        const h = document.createElement('h3');
-        h.textContent = s.name;
-        const p = document.createElement('p');
-        p.textContent = s.desc;
-        const contact = document.createElement('p');
-        contact.innerHTML = 'Тел.: ' + s.phone + (s.email ? '<br>e-mail: <a href="mailto:' + s.email + '">' + s.email + '</a>' : '') + '<br><a href="' + s.web + '" target="_blank">Сайт</a>';
-        card.appendChild(h);
-        card.appendChild(p);
-        card.appendChild(contact);
-        container.appendChild(card);
-      });
-    }
+            // Добавление маркера пользователя на карту
+            if (userMarker) {
+                map.removeLayer(userMarker);
+            }
 
-    // Старт
-    window.addEventListener('DOMContentLoaded', function() {
-      initMap();
-      displayServices();
-    });
-  </script>
+            userMarker = L.marker([userLocation.lat, userLocation.lng], {
+                icon: L.icon({
+                    iconUrl: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232563eb"%3E%3Cpath d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/%3E%3C/svg%3E',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40]
+                })
+            }).addTo(map);
+
+            map.setView([userLocation.lat, userLocation.lng], 10);
+
+            // Поиск ближайших мест
+            findNearbyPlaces();
+            showNotification('Местоположение определено!', 'success');
+        }
+
+        function showError(error) {
+            let message = '';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    message = "Вы отклонили запрос на геолокацию";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    message = "Информация о местоположении недоступна";
+                    break;
+                case error.TIMEOUT:
+                    message = "Время ожидания истекло";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    message = "Произошла неизвестная ошибка";
+                    break;
+            }
+            showNotification(message, 'error');
+        }
+
+        // Поиск ближайших мест
+        function findNearbyPlaces() {
+            if (!userLocation) {
+                showNotification('Сначала определите ваше местоположение', 'error');
+                return;
+            }
+
+            const nearbyPlaces = places.map(place => {
+                const distance = calculateDistance(
+                    userLocation.lat, userLocation.lng,
+                    place.coordinates[0], place.coordinates[1]
+                );
+                return { ...place, distance };
+            }).sort((a, b) => a.distance - b.distance);
+
+            displayPlaces(nearbyPlaces.slice(0, 6));
+        }
+
+        // Расчет расстояния между точками
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Радиус Земли в км
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // Отображение мест
+        function displayPlaces(placesToShow = places) {
+            const grid = document.getElementById('placesGrid');
+            grid.innerHTML = '';
+
+            placesToShow.forEach(place => {
+                const card = document.createElement('div');
+                card.className = 'place-card';
+                card.innerHTML = `
+                    <div class="place-image">${place.image}</div>
+                    <div class="place-content">
+                        <span class="place-category">${getCategoryName(place.category)}</span>
+                        <h3 class="place-title">${place.name}</h3>
+                        <div class="place-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            ${place.location}
+                        </div>
+                        <p class="place-description">${place.description}</p>
+                        <div class="place-footer">
+                            <div class="place-rating">
+                                ${generateStars(place.rating)}
+                                <span>${place.rating}</span>
+                            </div>
+                            ${place.distance ? `<span class="place-distance">${place.distance.toFixed(1)} км</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => showPlaceDetails(place.id);
+                grid.appendChild(card);
+            });
+        }
+
+        // Генерация звезд рейтинга
+        function generateStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '<i class="fas fa-star star"></i>';
+                } else if (i - 0.5 <= rating) {
+                    stars += '<i class="fas fa-star-half-alt star"></i>';
+                } else {
+                    stars += '<i class="far fa-star star"></i>';
+                }
+            }
+            return stars;
+        }
+
+        // Получение названия категории
+        function getCategoryName(category) {
+            const names = {
+                nature: 'Природа',
+                history: 'История',
+                culture: 'Культура',
+                adventure: 'Приключения',
+                family: 'Для семьи',
+                extreme: 'Экстрим'
+            };
+            return names[category] || category;
+        }
+
+        // Показ деталей места
+        function showPlaceDetails(placeId) {
+            const place = places.find(p => p.id === placeId);
+            if (!place) return;
+
+            const modal = document.getElementById('placeModal');
+            document.getElementById('modalTitle').textContent = place.name;
+            document.getElementById('modalLocation').textContent = place.location;
+            
+            const modalBody = document.getElementById('modalBody');
+            modalBody.innerHTML = `
+                <div style="margin-bottom: 2rem;">
+                    <h3>Описание</h3>
+                    <p>${place.description}</p>
+                </div>
+                <div style="margin-bottom: 2rem;">
+                    <h3>Доступные услуги</h3>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        ${place.services.map(service => `
+                            <span class="operator-service-tag">${service}</span>
+                        `).join('')}
+                    </div>
+                </div>
+                <div style="margin-bottom: 2rem;">
+                    <h3>Рекомендуемые туроператоры</h3>
+                    ${place.operators.map(op => `
+                        <div class="operator-card" style="margin-top: 1rem;">
+                            <div class="operator-info">
+                                <h4>${op}</h4>
+                            </div>
+                            <div class="operator-contact">
+                                <button class="contact-btn contact-phone">
+                                    <i class="fas fa-phone"></i> Позвонить
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" onclick="bookPlace(${place.id})">
+                        <i class="fas fa-calendar-check"></i> Забронировать
+                    </button>
+                    <button class="btn btn-secondary" onclick="showOnMap(${place.coordinates[0]}, ${place.coordinates[1]})">
+                        <i class="fas fa-map"></i> Показать на карте
+                    </button>
+                </div>
+            `;
+            
+            modal.classList.add('active');
+        }
+
+        // Закрытие модального окна
+        function closeModal() {
+            document.getElementById('placeModal').classList.remove('active');
+        }
+
+        // Показать на карте
+        function showOnMap(lat, lng) {
+            closeModal();
+            map.setView([lat, lng], 12);
+            window.scrollTo({ top: document.getElementById('map').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        // Фильтрация по категории
+        function filterBy(category) {
+            // Обновление активного фильтра
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Фильтрация мест
+            if (category === 'all') {
+                displayPlaces(places);
+            } else {
+                const filtered = places.filter(place => place.category === category);
+                displayPlaces(filtered);
+            }
+        }
+
+        // Фильтрация по услуге
+        function filterByService(service) {
+            const filtered = places.filter(place => 
+                place.services.some(s => s.toLowerCase().includes(service.toLowerCase()))
+            );
+            displayPlaces(filtered);
+            window.scrollTo({ top: document.getElementById('placesGrid').offsetTop - 100, behavior: 'smooth' });
+        }
+
+        // Поиск мест
+        function searchPlaces() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) {
+                displayPlaces(places);
+                return;
+            }
+
+            const filtered = places.filter(place => 
+                place.name.toLowerCase().includes(query) ||
+                place.location.toLowerCase().includes(query) ||
+                place.description.toLowerCase().includes(query) ||
+                place.services.some(s => s.toLowerCase().includes(query))
+            );
+            
+            displayPlaces(filtered);
+            
+            if (filtered.length === 0) {
+                showNotification('Ничего не найдено. Попробуйте изменить запрос', 'error');
+            } else {
+                showNotification(`Найдено мест: ${filtered.length}`, 'success');
+            }
+        }
+
+        // Показ случайного места
+        function showRandomPlace() {
+            const randomPlace = places[Math.floor(Math.random() * places.length)];
+            showPlaceDetails(randomPlace.id);
+        }
+
+        // Отображение операторов
+        function displayOperators() {
+            const list = document.getElementById('operatorsList');
+            list.innerHTML = '';
+
+            operators.forEach(operator => {
+                const card = document.createElement('div');
+                card.className = 'operator-card';
+                card.innerHTML = `
+                    <div class="operator-info">
+                        <h3>${operator.name}</h3>
+                        <div class="operator-services">
+                            ${operator.services.map(service => `
+                                <span class="operator-service-tag">${service}</span>
+                            `).join('')}
+                        </div>
+                        <div style="color: #6b7280;">
+                            <i class="fas fa-map-marker-alt"></i> ${operator.region}
+                            <span style="margin-left: 1rem;">
+                                ${generateStars(operator.rating)} ${operator.rating}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="operator-contact">
+                        <button class="contact-btn contact-phone" onclick="callOperator('${operator.phone}')">
+                            <i class="fas fa-phone"></i> ${operator.phone}
+                        </button>
+                        <button class="contact-btn contact-whatsapp" onclick="whatsappOperator('${operator.whatsapp}')">
+                            <i class="fab fa-whatsapp"></i> WhatsApp
+                        </button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Звонок оператору
+        function callOperator(phone) {
+            window.location.href = `tel:${phone}`;
+        }
+
+        // WhatsApp оператору
+        function whatsappOperator(phone) {
+            window.open(`https://wa.me/${phone}`, '_blank');
+        }
+
+        // Бронирование
+        function bookPlace(placeId) {
+            showNotification('Функция бронирования будет доступна в ближайшее время!', 'success');
+        }
+
+        // Показ секции
+        function showSection(section) {
+            // Обновление активного пункта меню
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Прокрутка к секции
+            let element;
+            switch(section) {
+                case 'map':
+                    element = document.getElementById('map');
+                    break;
+                case 'places':
+                    element = document.getElementById('placesGrid');
+                    break;
+                case 'services':
+                    element = document.querySelector('.services-section');
+                    break;
+                case 'operators':
+                    element = document.querySelector('.operators-section');
+                    break;
+                default:
+                    element = document.querySelector('.hero');
+            }
+            
+            if (element) {
+                window.scrollTo({ top: element.offsetTop - 100, behavior: 'smooth' });
+            }
+        }
+
+        // Показ уведомлений
+        function showNotification(text, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notificationText.textContent = text;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            displayPlaces();
+            displayOperators();
+            
+            // Обработчик Enter для поиска
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchPlaces();
+                }
+            });
+
+            // Закрытие модального окна по клику вне его
+            document.getElementById('placeModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        });
+
+        // Плавная прокрутка при загрузке
+        window.addEventListener('load', function() {
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                document.body.style.transition = 'opacity 0.5s ease';
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+    </script>
 </body>
 </html>
